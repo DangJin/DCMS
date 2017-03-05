@@ -32,41 +32,35 @@ class Html
     public function __construct(array $config = [])
     {
         $this->config['trace_file'] = THINK_PATH . 'tpl/page_trace.tpl';
-        $this->config = array_merge($this->config, $config);
+        $this->config               = array_merge($this->config, $config);
     }
 
     /**
      * 调试输出接口
      * @access public
-     *
-     * @param Response $response Response对象
-     * @param array    $log 日志信息
-     *
+     * @param Response  $response Response对象
+     * @param array     $log 日志信息
      * @return bool
      */
     public function output(Response $response, array $log = [])
     {
-        $request = Request::instance();
+        $request     = Request::instance();
         $contentType = $response->getHeader('Content-Type');
-        $accept = $request->header('accept');
-        if (strpos($accept, 'application/json') === 0 || $request->isAjax())
-        {
+        $accept      = $request->header('accept');
+        if (strpos($accept, 'application/json') === 0 || $request->isAjax()) {
             return false;
-        } elseif (!empty($contentType) && strpos($contentType, 'html') === false)
-        {
+        } elseif (!empty($contentType) && strpos($contentType, 'html') === false) {
             return false;
         }
         // 获取基本信息
         $runtime = number_format(microtime(true) - THINK_START_TIME, 10);
-        $reqs = $runtime > 0 ? number_format(1 / $runtime, 2) : '∞';
-        $mem = number_format((memory_get_usage() - THINK_START_MEM) / 1024, 2);
+        $reqs    = $runtime > 0 ? number_format(1 / $runtime, 2) : '∞';
+        $mem     = number_format((memory_get_usage() - THINK_START_MEM) / 1024, 2);
 
         // 页面Trace信息
-        if (isset($_SERVER['HTTP_HOST']))
-        {
+        if (isset($_SERVER['HTTP_HOST'])) {
             $uri = $_SERVER['SERVER_PROTOCOL'] . ' ' . $_SERVER['REQUEST_METHOD'] . ' : ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        } else
-        {
+        } else {
             $uri = 'cmd:' . implode(' ', $_SERVER['argv']);
         }
         $base = [
@@ -77,8 +71,7 @@ class Html
             '配置加载' => count(Config::get()),
         ];
 
-        if (session_id())
-        {
+        if (session_id()) {
             $base['会话信息'] = 'SESSION_ID=' . session_id();
         }
 
@@ -86,11 +79,9 @@ class Html
 
         // 页面Trace信息
         $trace = [];
-        foreach ($this->config['trace_tabs'] as $name => $title)
-        {
+        foreach ($this->config['trace_tabs'] as $name => $title) {
             $name = strtolower($name);
-            switch ($name)
-            {
+            switch ($name) {
                 case 'base': // 基本信息
                     $trace[$title] = $base;
                     break;
@@ -98,18 +89,15 @@ class Html
                     $trace[$title] = $info;
                     break;
                 default: // 调试信息
-                    if (strpos($name, '|'))
-                    {
+                    if (strpos($name, '|')) {
                         // 多组信息
-                        $names = explode('|', $name);
+                        $names  = explode('|', $name);
                         $result = [];
-                        foreach ($names as $name)
-                        {
+                        foreach ($names as $name) {
                             $result = array_merge($result, isset($log[$name]) ? $log[$name] : []);
                         }
                         $trace[$title] = $result;
-                    } else
-                    {
+                    } else {
                         $trace[$title] = isset($log[$name]) ? $log[$name] : '';
                     }
             }
@@ -117,7 +105,6 @@ class Html
         // 调用Trace页面模板
         ob_start();
         include $this->config['trace_file'];
-
         return ob_get_clean();
     }
 

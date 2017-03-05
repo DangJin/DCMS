@@ -25,16 +25,14 @@ class Unix extends Pipes
 
     public function __construct($ttyMode, $ptyMode, $input, $disableOutput)
     {
-        $this->ttyMode = (bool)$ttyMode;
-        $this->ptyMode = (bool)$ptyMode;
-        $this->disableOutput = (bool)$disableOutput;
+        $this->ttyMode       = (bool) $ttyMode;
+        $this->ptyMode       = (bool) $ptyMode;
+        $this->disableOutput = (bool) $disableOutput;
 
-        if (is_resource($input))
-        {
+        if (is_resource($input)) {
             $this->input = $input;
-        } else
-        {
-            $this->inputBuffer = (string)$input;
+        } else {
+            $this->inputBuffer = (string) $input;
         }
     }
 
@@ -48,8 +46,7 @@ class Unix extends Pipes
      */
     public function getDescriptors()
     {
-        if ($this->disableOutput)
-        {
+        if ($this->disableOutput) {
             $nullstream = fopen('/dev/null', 'c');
 
             return [
@@ -59,8 +56,7 @@ class Unix extends Pipes
             ];
         }
 
-        if ($this->ttyMode)
-        {
+        if ($this->ttyMode) {
             return [
                 ['file', '/dev/tty', 'r'],
                 ['file', '/dev/tty', 'w'],
@@ -68,8 +64,7 @@ class Unix extends Pipes
             ];
         }
 
-        if ($this->ptyMode && Process::isPtySupported())
-        {
+        if ($this->ptyMode && Process::isPtySupported()) {
             return [
                 ['pty'],
                 ['pty'],
@@ -98,14 +93,12 @@ class Unix extends Pipes
     public function readAndWrite($blocking, $close = false)
     {
 
-        if (1 === count($this->pipes) && [0] === array_keys($this->pipes))
-        {
+        if (1 === count($this->pipes) && [0] === array_keys($this->pipes)) {
             fclose($this->pipes[0]);
             unset($this->pipes[0]);
         }
 
-        if (empty($this->pipes))
-        {
+        if (empty($this->pipes)) {
             return [];
         }
 
@@ -113,11 +106,9 @@ class Unix extends Pipes
 
         $read = [];
 
-        if (null !== $this->input)
-        {
+        if (null !== $this->input) {
             $r = array_merge($this->pipes, ['input' => $this->input]);
-        } else
-        {
+        } else {
             $r = $this->pipes;
         }
 
@@ -126,73 +117,57 @@ class Unix extends Pipes
         $w = isset($this->pipes[0]) ? [$this->pipes[0]] : null;
         $e = null;
 
-        if (false === $n = @stream_select($r, $w, $e, 0, $blocking ? Process::TIMEOUT_PRECISION * 1E6 : 0))
-        {
+        if (false === $n = @stream_select($r, $w, $e, 0, $blocking ? Process::TIMEOUT_PRECISION * 1E6 : 0)) {
 
-            if (!$this->hasSystemCallBeenInterrupted())
-            {
+            if (!$this->hasSystemCallBeenInterrupted()) {
                 $this->pipes = [];
             }
 
             return $read;
         }
 
-        if (0 === $n)
-        {
+        if (0 === $n) {
             return $read;
         }
 
-        foreach ($r as $pipe)
-        {
+        foreach ($r as $pipe) {
 
             $type = (false !== $found = array_search($pipe, $this->pipes)) ? $found : 'input';
             $data = '';
-            while ('' !== $dataread = (string)fread($pipe, self::CHUNK_SIZE))
-            {
+            while ('' !== $dataread = (string) fread($pipe, self::CHUNK_SIZE)) {
                 $data .= $dataread;
             }
 
-            if ('' !== $data)
-            {
-                if ('input' === $type)
-                {
+            if ('' !== $data) {
+                if ('input' === $type) {
                     $this->inputBuffer .= $data;
-                } else
-                {
+                } else {
                     $read[$type] = $data;
                 }
             }
 
-            if (false === $data || (true === $close && feof($pipe) && '' === $data))
-            {
-                if ('input' === $type)
-                {
+            if (false === $data || (true === $close && feof($pipe) && '' === $data)) {
+                if ('input' === $type) {
                     $this->input = null;
-                } else
-                {
+                } else {
                     fclose($this->pipes[$type]);
                     unset($this->pipes[$type]);
                 }
             }
         }
 
-        if (null !== $w && 0 < count($w))
-        {
-            while (strlen($this->inputBuffer))
-            {
+        if (null !== $w && 0 < count($w)) {
+            while (strlen($this->inputBuffer)) {
                 $written = fwrite($w[0], $this->inputBuffer, 2 << 18); // write 512k
-                if ($written > 0)
-                {
-                    $this->inputBuffer = (string)substr($this->inputBuffer, $written);
-                } else
-                {
+                if ($written > 0) {
+                    $this->inputBuffer = (string) substr($this->inputBuffer, $written);
+                } else {
                     break;
                 }
             }
         }
 
-        if ('' === $this->inputBuffer && null === $this->input && isset($this->pipes[0]))
-        {
+        if ('' === $this->inputBuffer && null === $this->input && isset($this->pipes[0])) {
             fclose($this->pipes[0]);
             unset($this->pipes[0]);
         }
@@ -205,15 +180,13 @@ class Unix extends Pipes
      */
     public function areOpen()
     {
-        return (bool)$this->pipes;
+        return (bool) $this->pipes;
     }
 
     /**
      * 创建一个新的 UnixPipes 实例
-     *
      * @param Process         $process
      * @param string|resource $input
-     *
      * @return self
      */
     public static function create(Process $process, $input)

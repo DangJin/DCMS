@@ -33,40 +33,31 @@ class Redirect extends Response
     /**
      * 处理数据
      * @access protected
-     *
      * @param mixed $data 要处理的数据
-     *
      * @return mixed
      */
     protected function output($data)
     {
         $this->header['Location'] = $this->getTargetUrl();
-
         return;
     }
 
     /**
      * 重定向传值（通过Session）
      * @access protected
-     *
-     * @param string|array $name 变量名或者数组
-     * @param mixed        $value 值
-     *
+     * @param string|array  $name 变量名或者数组
+     * @param mixed         $value 值
      * @return $this
      */
     public function with($name, $value = null)
     {
-        if (is_array($name))
-        {
-            foreach ($name as $key => $val)
-            {
+        if (is_array($name)) {
+            foreach ($name as $key => $val) {
                 Session::flash($key, $val);
             }
-        } else
-        {
+        } else {
             Session::flash($name, $value);
         }
-
         return $this;
     }
 
@@ -82,7 +73,6 @@ class Redirect extends Response
     public function params($params = [])
     {
         $this->params = $params;
-
         return $this;
     }
 
@@ -93,7 +83,6 @@ class Redirect extends Response
     public function remember()
     {
         Session::set('redirect_url', Request::instance()->url());
-
         return $this;
     }
 
@@ -103,12 +92,10 @@ class Redirect extends Response
      */
     public function restore()
     {
-        if (Session::has('redirect_url'))
-        {
+        if (Session::has('redirect_url')) {
             $this->data = Session::get('redirect_url');
             Session::delete('redirect_url');
         }
-
         return $this;
     }
 }

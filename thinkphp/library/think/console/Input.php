@@ -40,8 +40,7 @@ class Input
 
     public function __construct($argv = null)
     {
-        if (null === $argv)
-        {
+        if (null === $argv) {
             $argv = $_SERVER['argv'];
             // 去除命令名
             array_shift($argv);
@@ -59,13 +58,12 @@ class Input
 
     /**
      * 绑定实例
-     *
      * @param Definition $definition A InputDefinition instance
      */
     public function bind(Definition $definition)
     {
-        $this->arguments = [];
-        $this->options = [];
+        $this->arguments  = [];
+        $this->options    = [];
         $this->definition = $definition;
 
         $this->parse();
@@ -78,22 +76,16 @@ class Input
     {
         $parseOptions = true;
         $this->parsed = $this->tokens;
-        while (null !== $token = array_shift($this->parsed))
-        {
-            if ($parseOptions && '' == $token)
-            {
+        while (null !== $token = array_shift($this->parsed)) {
+            if ($parseOptions && '' == $token) {
                 $this->parseArgument($token);
-            } elseif ($parseOptions && '--' == $token)
-            {
+            } elseif ($parseOptions && '--' == $token) {
                 $parseOptions = false;
-            } elseif ($parseOptions && 0 === strpos($token, '--'))
-            {
+            } elseif ($parseOptions && 0 === strpos($token, '--')) {
                 $this->parseLongOption($token);
-            } elseif ($parseOptions && '-' === $token[0] && '-' !== $token)
-            {
+            } elseif ($parseOptions && '-' === $token[0] && '-' !== $token) {
                 $this->parseShortOption($token);
-            } else
-            {
+            } else {
                 $this->parseArgument($token);
             }
         }
@@ -101,55 +93,44 @@ class Input
 
     /**
      * 解析短选项
-     *
      * @param string $token 当前的指令.
      */
     private function parseShortOption($token)
     {
         $name = substr($token, 1);
 
-        if (strlen($name) > 1)
-        {
+        if (strlen($name) > 1) {
             if ($this->definition->hasShortcut($name[0])
                 && $this->definition->getOptionForShortcut($name[0])->acceptValue()
-            )
-            {
+            ) {
                 $this->addShortOption($name[0], substr($name, 1));
-            } else
-            {
+            } else {
                 $this->parseShortOptionSet($name);
             }
-        } else
-        {
+        } else {
             $this->addShortOption($name, null);
         }
     }
 
     /**
      * 解析短选项
-     *
      * @param string $name 当前指令
-     *
      * @throws \RuntimeException
      */
     private function parseShortOptionSet($name)
     {
         $len = strlen($name);
-        for ($i = 0; $i < $len; ++$i)
-        {
-            if (!$this->definition->hasShortcut($name[$i]))
-            {
+        for ($i = 0; $i < $len; ++$i) {
+            if (!$this->definition->hasShortcut($name[$i])) {
                 throw new \RuntimeException(sprintf('The "-%s" option does not exist.', $name[$i]));
             }
 
             $option = $this->definition->getOptionForShortcut($name[$i]);
-            if ($option->acceptValue())
-            {
+            if ($option->acceptValue()) {
                 $this->addLongOption($option->getName(), $i === $len - 1 ? null : substr($name, $i + 1));
 
                 break;
-            } else
-            {
+            } else {
                 $this->addLongOption($option->getName(), null);
             }
         }
@@ -157,62 +138,51 @@ class Input
 
     /**
      * 解析完整选项
-     *
      * @param string $token 当前指令
      */
     private function parseLongOption($token)
     {
         $name = substr($token, 2);
 
-        if (false !== $pos = strpos($name, '='))
-        {
+        if (false !== $pos = strpos($name, '=')) {
             $this->addLongOption(substr($name, 0, $pos), substr($name, $pos + 1));
-        } else
-        {
+        } else {
             $this->addLongOption($name, null);
         }
     }
 
     /**
      * 解析参数
-     *
      * @param string $token 当前指令
-     *
      * @throws \RuntimeException
      */
     private function parseArgument($token)
     {
         $c = count($this->arguments);
 
-        if ($this->definition->hasArgument($c))
-        {
+        if ($this->definition->hasArgument($c)) {
             $arg = $this->definition->getArgument($c);
 
             $this->arguments[$arg->getName()] = $arg->isArray() ? [$token] : $token;
 
-        } elseif ($this->definition->hasArgument($c - 1) && $this->definition->getArgument($c - 1)->isArray())
-        {
+        } elseif ($this->definition->hasArgument($c - 1) && $this->definition->getArgument($c - 1)->isArray()) {
             $arg = $this->definition->getArgument($c - 1);
 
             $this->arguments[$arg->getName()][] = $token;
-        } else
-        {
+        } else {
             throw new \RuntimeException('Too many arguments.');
         }
     }
 
     /**
      * 添加一个短选项的值
-     *
      * @param string $shortcut 短名称
-     * @param mixed  $value 值
-     *
+     * @param mixed  $value    值
      * @throws \RuntimeException
      */
     private function addShortOption($shortcut, $value)
     {
-        if (!$this->definition->hasShortcut($shortcut))
-        {
+        if (!$this->definition->hasShortcut($shortcut)) {
             throw new \RuntimeException(sprintf('The "-%s" option does not exist.', $shortcut));
         }
 
@@ -221,64 +191,50 @@ class Input
 
     /**
      * 添加一个完整选项的值
-     *
-     * @param string $name 选项名
+     * @param string $name  选项名
      * @param mixed  $value 值
-     *
      * @throws \RuntimeException
      */
     private function addLongOption($name, $value)
     {
-        if (!$this->definition->hasOption($name))
-        {
+        if (!$this->definition->hasOption($name)) {
             throw new \RuntimeException(sprintf('The "--%s" option does not exist.', $name));
         }
 
         $option = $this->definition->getOption($name);
 
-        if (false === $value)
-        {
+        if (false === $value) {
             $value = null;
         }
 
-        if (null !== $value && !$option->acceptValue())
-        {
+        if (null !== $value && !$option->acceptValue()) {
             throw new \RuntimeException(sprintf('The "--%s" option does not accept a value.', $name, $value));
         }
 
-        if (null === $value && $option->acceptValue() && count($this->parsed))
-        {
+        if (null === $value && $option->acceptValue() && count($this->parsed)) {
             $next = array_shift($this->parsed);
-            if (isset($next[0]) && '-' !== $next[0])
-            {
+            if (isset($next[0]) && '-' !== $next[0]) {
                 $value = $next;
-            } elseif (empty($next))
-            {
+            } elseif (empty($next)) {
                 $value = '';
-            } else
-            {
+            } else {
                 array_unshift($this->parsed, $next);
             }
         }
 
-        if (null === $value)
-        {
-            if ($option->isValueRequired())
-            {
+        if (null === $value) {
+            if ($option->isValueRequired()) {
                 throw new \RuntimeException(sprintf('The "--%s" option requires a value.', $name));
             }
 
-            if (!$option->isArray())
-            {
+            if (!$option->isArray()) {
                 $value = $option->isValueOptional() ? $option->getDefault() : true;
             }
         }
 
-        if ($option->isArray())
-        {
+        if ($option->isArray()) {
             $this->options[$name][] = $value;
-        } else
-        {
+        } else {
             $this->options[$name] = $value;
         }
     }
@@ -289,36 +245,28 @@ class Input
      */
     public function getFirstArgument()
     {
-        foreach ($this->tokens as $token)
-        {
-            if ($token && '-' === $token[0])
-            {
+        foreach ($this->tokens as $token) {
+            if ($token && '-' === $token[0]) {
                 continue;
             }
 
             return $token;
         }
-
         return;
     }
 
     /**
      * 检查原始参数是否包含某个值
-     *
      * @param string|array $values 需要检查的值
-     *
      * @return bool
      */
     public function hasParameterOption($values)
     {
-        $values = (array)$values;
+        $values = (array) $values;
 
-        foreach ($this->tokens as $token)
-        {
-            foreach ($values as $value)
-            {
-                if ($token === $value || 0 === strpos($token, $value . '='))
-                {
+        foreach ($this->tokens as $token) {
+            foreach ($values as $value) {
+                if ($token === $value || 0 === strpos($token, $value . '=')) {
                     return true;
                 }
             }
@@ -329,27 +277,21 @@ class Input
 
     /**
      * 获取原始选项的值
-     *
-     * @param string|array $values 需要检查的值
+     * @param string|array $values  需要检查的值
      * @param mixed        $default 默认值
-     *
      * @return mixed The option value
      */
     public function getParameterOption($values, $default = false)
     {
-        $values = (array)$values;
+        $values = (array) $values;
         $tokens = $this->tokens;
 
-        while (0 < count($tokens))
-        {
+        while (0 < count($tokens)) {
             $token = array_shift($tokens);
 
-            foreach ($values as $value)
-            {
-                if ($token === $value || 0 === strpos($token, $value . '='))
-                {
-                    if (false !== $pos = strpos($token, '='))
-                    {
+            foreach ($values as $value) {
+                if ($token === $value || 0 === strpos($token, $value . '=')) {
+                    if (false !== $pos = strpos($token, '=')) {
                         return substr($token, $pos + 1);
                     }
 
@@ -367,8 +309,7 @@ class Input
      */
     public function validate()
     {
-        if (count($this->arguments) < $this->definition->getArgumentRequiredCount())
-        {
+        if (count($this->arguments) < $this->definition->getArgumentRequiredCount()) {
             throw new \RuntimeException('Not enough arguments.');
         }
     }
@@ -384,12 +325,11 @@ class Input
 
     /**
      * 设置输入的交互
-     *
      * @param bool
      */
     public function setInteractive($interactive)
     {
-        $this->interactive = (bool)$interactive;
+        $this->interactive = (bool) $interactive;
     }
 
     /**
@@ -403,16 +343,13 @@ class Input
 
     /**
      * 根据名称获取参数
-     *
      * @param string $name 参数名
-     *
      * @return mixed
      * @throws \InvalidArgumentException
      */
     public function getArgument($name)
     {
-        if (!$this->definition->hasArgument($name))
-        {
+        if (!$this->definition->hasArgument($name)) {
             throw new \InvalidArgumentException(sprintf('The "%s" argument does not exist.', $name));
         }
 
@@ -422,16 +359,13 @@ class Input
 
     /**
      * 设置参数的值
-     *
-     * @param string $name 参数名
+     * @param string $name  参数名
      * @param string $value 值
-     *
      * @throws \InvalidArgumentException
      */
     public function setArgument($name, $value)
     {
-        if (!$this->definition->hasArgument($name))
-        {
+        if (!$this->definition->hasArgument($name)) {
             throw new \InvalidArgumentException(sprintf('The "%s" argument does not exist.', $name));
         }
 
@@ -440,9 +374,7 @@ class Input
 
     /**
      * 检查是否存在某个参数
-     *
      * @param string|int $name 参数名或位置
-     *
      * @return bool
      */
     public function hasArgument($name)
@@ -461,16 +393,13 @@ class Input
 
     /**
      * 获取选项值
-     *
      * @param string $name 选项名称
-     *
      * @return mixed
      * @throws \InvalidArgumentException
      */
     public function getOption($name)
     {
-        if (!$this->definition->hasOption($name))
-        {
+        if (!$this->definition->hasOption($name)) {
             throw new \InvalidArgumentException(sprintf('The "%s" option does not exist.', $name));
         }
 
@@ -479,16 +408,13 @@ class Input
 
     /**
      * 设置选项值
-     *
-     * @param string      $name 选项名
+     * @param string      $name  选项名
      * @param string|bool $value 值
-     *
      * @throws \InvalidArgumentException
      */
     public function setOption($name, $value)
     {
-        if (!$this->definition->hasOption($name))
-        {
+        if (!$this->definition->hasOption($name)) {
             throw new \InvalidArgumentException(sprintf('The "%s" option does not exist.', $name));
         }
 
@@ -497,9 +423,7 @@ class Input
 
     /**
      * 是否有某个选项
-     *
      * @param string $name 选项名
-     *
      * @return bool
      */
     public function hasOption($name)
@@ -509,9 +433,7 @@ class Input
 
     /**
      * 转义指令
-     *
      * @param string $token
-     *
      * @return string
      */
     public function escapeToken($token)
@@ -525,15 +447,12 @@ class Input
      */
     public function __toString()
     {
-        $tokens = array_map(function ($token)
-        {
-            if (preg_match('{^(-[^=]+=)(.+)}', $token, $match))
-            {
+        $tokens = array_map(function ($token) {
+            if (preg_match('{^(-[^=]+=)(.+)}', $token, $match)) {
                 return $match[1] . $this->escapeToken($match[2]);
             }
 
-            if ($token && '-' !== $token[0])
-            {
+            if ($token && '-' !== $token[0]) {
                 return $this->escapeToken($token);
             }
 

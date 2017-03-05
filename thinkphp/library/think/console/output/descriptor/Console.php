@@ -46,13 +46,12 @@ class Console
 
     /**
      * 构造方法
-     *
      * @param ThinkConsole $console
      * @param string|null  $namespace
      */
     public function __construct(ThinkConsole $console, $namespace = null)
     {
-        $this->console = $console;
+        $this->console   = $console;
         $this->namespace = $namespace;
     }
 
@@ -61,8 +60,7 @@ class Console
      */
     public function getNamespaces()
     {
-        if (null === $this->namespaces)
-        {
+        if (null === $this->namespaces) {
             $this->inspectConsole();
         }
 
@@ -74,8 +72,7 @@ class Console
      */
     public function getCommands()
     {
-        if (null === $this->commands)
-        {
+        if (null === $this->commands) {
             $this->inspectConsole();
         }
 
@@ -84,14 +81,12 @@ class Console
 
     /**
      * @param string $name
-     *
      * @return Command
      * @throws \InvalidArgumentException
      */
     public function getCommand($name)
     {
-        if (!isset($this->commands[$name]) && !isset($this->aliases[$name]))
-        {
+        if (!isset($this->commands[$name]) && !isset($this->aliases[$name])) {
             throw new \InvalidArgumentException(sprintf('Command %s does not exist.', $name));
         }
 
@@ -100,27 +95,22 @@ class Console
 
     private function inspectConsole()
     {
-        $this->commands = [];
+        $this->commands   = [];
         $this->namespaces = [];
 
         $all = $this->console->all($this->namespace ? $this->console->findNamespace($this->namespace) : null);
-        foreach ($this->sortCommands($all) as $namespace => $commands)
-        {
+        foreach ($this->sortCommands($all) as $namespace => $commands) {
             $names = [];
 
             /** @var Command $command */
-            foreach ($commands as $name => $command)
-            {
-                if (!$command->getName())
-                {
+            foreach ($commands as $name => $command) {
+                if (!$command->getName()) {
                     continue;
                 }
 
-                if ($command->getName() === $name)
-                {
+                if ($command->getName() === $name) {
                     $this->commands[$name] = $command;
-                } else
-                {
+                } else {
                     $this->aliases[$name] = $command;
                 }
 
@@ -133,17 +123,14 @@ class Console
 
     /**
      * @param array $commands
-     *
      * @return array
      */
     private function sortCommands(array $commands)
     {
         $namespacedCommands = [];
-        foreach ($commands as $name => $command)
-        {
+        foreach ($commands as $name => $command) {
             $key = $this->console->extractNamespace($name, 1);
-            if (!$key)
-            {
+            if (!$key) {
                 $key = self::GLOBAL_NAMESPACE;
             }
 
@@ -151,8 +138,7 @@ class Console
         }
         ksort($namespacedCommands);
 
-        foreach ($namespacedCommands as &$commandsSet)
-        {
+        foreach ($namespacedCommands as &$commandsSet) {
             ksort($commandsSet);
         }
         // unset reference to keep scope clear

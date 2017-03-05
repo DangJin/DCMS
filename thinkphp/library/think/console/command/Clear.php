@@ -28,17 +28,13 @@ class Clear extends Command
 
     protected function execute(Input $input, Output $output)
     {
-        $path = $input->getOption('path') ?: RUNTIME_PATH;
+        $path  = $input->getOption('path') ?: RUNTIME_PATH;
         $files = scandir($path);
-        if ($files)
-        {
-            foreach ($files as $file)
-            {
-                if ('.' != $file && '..' != $file && is_dir($path . $file))
-                {
+        if ($files) {
+            foreach ($files as $file) {
+                if ('.' != $file && '..' != $file && is_dir($path . $file)) {
                     array_map('unlink', glob($path . $file . '/*.*'));
-                } elseif (is_file($path . $file))
-                {
+                } elseif (is_file($path . $file)) {
                     unlink($path . $file);
                 }
             }

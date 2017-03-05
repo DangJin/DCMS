@@ -34,7 +34,7 @@ class Exception extends \Exception
      *   key2      value2
      *
      * @param string $label 数据分类，用于异常页面显示
-     * @param array  $data 需要显示的数据，必须为关联数组
+     * @param array  $data  需要显示的数据，必须为关联数组
      */
     final protected function setData($label, array $data)
     {
@@ -50,5 +50,5 @@ class Exception extends \Exception
     {
         return $this->data;
     }
-
+    
 }

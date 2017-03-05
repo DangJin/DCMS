@@ -19,17 +19,14 @@ class Pivot extends Model
     /**
      * 架构函数
      * @access public
-     *
      * @param array|object $data 数据
-     * @param string       $table 中间数据表名
+     * @param string $table 中间数据表名
      */
     public function __construct($data = [], $table = '')
     {
-        if (is_object($data))
-        {
+        if (is_object($data)) {
             $this->data = get_object_vars($data);
-        } else
-        {
+        } else {
             $this->data = $data;
         }
 

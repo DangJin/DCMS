@@ -30,18 +30,15 @@ class Config extends Command
 
     protected function execute(Input $input, Output $output)
     {
-        if ($input->hasArgument('module'))
-        {
+        if ($input->hasArgument('module')) {
             $module = $input->getArgument('module') . DS;
-        } else
-        {
+        } else {
             $module = '';
         }
 
         $content = '<?php ' . PHP_EOL . $this->buildCacheContent($module);
 
-        if (!is_dir(RUNTIME_PATH . $module))
-        {
+        if (!is_dir(RUNTIME_PATH . $module)) {
             @mkdir(RUNTIME_PATH . $module, 0755, true);
         }
 
@@ -53,10 +50,9 @@ class Config extends Command
     protected function buildCacheContent($module)
     {
         $content = '';
-        $path = realpath(APP_PATH . $module) . DS;
+        $path    = realpath(APP_PATH . $module) . DS;
 
-        if ($module)
-        {
+        if ($module) {
             // 加载模块配置
             $config = ThinkConfig::load(CONF_PATH . $module . 'config' . CONF_EXT);
 
@@ -65,19 +61,15 @@ class Config extends Command
             ThinkConfig::load($filename, 'database');
 
             // 加载应用状态配置
-            if ($config['app_status'])
-            {
+            if ($config['app_status']) {
                 $config = ThinkConfig::load(CONF_PATH . $module . $config['app_status'] . CONF_EXT);
             }
             // 读取扩展配置文件
-            if (is_dir(CONF_PATH . $module . 'extra'))
-            {
-                $dir = CONF_PATH . $module . 'extra';
+            if (is_dir(CONF_PATH . $module . 'extra')) {
+                $dir   = CONF_PATH . $module . 'extra';
                 $files = scandir($dir);
-                foreach ($files as $file)
-                {
-                    if (strpos($file, CONF_EXT))
-                    {
+                foreach ($files as $file) {
+                    if (strpos($file, CONF_EXT)) {
                         $filename = $dir . DS . $file;
                         ThinkConfig::load($filename, pathinfo($file, PATHINFO_FILENAME));
                     }
@@ -86,19 +78,16 @@ class Config extends Command
         }
 
         // 加载行为扩展文件
-        if (is_file(CONF_PATH . $module . 'tags' . EXT))
-        {
+        if (is_file(CONF_PATH . $module . 'tags' . EXT)) {
             $content .= '\think\Hook::import(' . (var_export(include CONF_PATH . $module . 'tags' . EXT, true)) . ');' . PHP_EOL;
         }
 
         // 加载公共文件
-        if (is_file($path . 'common' . EXT))
-        {
+        if (is_file($path . 'common' . EXT)) {
             $content .= substr(php_strip_whitespace($path . 'common' . EXT), 5) . PHP_EOL;
         }
 
         $content .= '\think\Config::set(' . var_export(ThinkConfig::get(), true) . ');';
-
         return $content;
     }
 }

@@ -71,9 +71,7 @@ abstract class Relation
     /**
      * 封装关联数据集
      * @access public
-     *
      * @param array $resultSet 数据集
-     *
      * @return mixed
      */
     protected function resultSetBuild($resultSet)
@@ -89,7 +87,6 @@ abstract class Relation
     public function removeOption()
     {
         $this->query->removeOption();
-
         return $this;
     }
 
@@ -102,26 +99,20 @@ abstract class Relation
 
     public function __call($method, $args)
     {
-        if ($this->query)
-        {
+        if ($this->query) {
             // 执行基础查询
             $this->baseQuery();
 
             $result = call_user_func_array([$this->query, $method], $args);
-            if ($result instanceof Query)
-            {
+            if ($result instanceof Query) {
                 $this->option = $result->getOptions();
-
                 return $this;
-            } else
-            {
-                $this->option = [];
+            } else {
+                $this->option    = [];
                 $this->baseQuery = false;
-
                 return $result;
             }
-        } else
-        {
+        } else {
             throw new Exception('method not exists:' . __CLASS__ . '->' . $method);
         }
     }

@@ -17,16 +17,15 @@ class Choice extends Question
 {
 
     private $choices;
-    private $multiselect = false;
-    private $prompt = ' > ';
+    private $multiselect  = false;
+    private $prompt       = ' > ';
     private $errorMessage = 'Value "%s" is invalid';
 
     /**
      * 构造方法
-     *
      * @param string $question 问题
-     * @param array  $choices 选项
-     * @param mixed  $default 默认答案
+     * @param array  $choices  选项
+     * @param mixed  $default  默认答案
      */
     public function __construct($question, array $choices, $default = null)
     {
@@ -48,9 +47,7 @@ class Choice extends Question
 
     /**
      * 设置可否多选
-     *
      * @param bool $multiselect
-     *
      * @return self
      */
     public function setMultiselect($multiselect)
@@ -77,9 +74,7 @@ class Choice extends Question
 
     /**
      * 设置提示
-     *
      * @param string $prompt
-     *
      * @return self
      */
     public function setPrompt($prompt)
@@ -91,9 +86,7 @@ class Choice extends Question
 
     /**
      * 设置错误提示信息
-     *
      * @param string $errorMessage
-     *
      * @return self
      */
     public function setErrorMessage($errorMessage)
@@ -110,71 +103,57 @@ class Choice extends Question
      */
     private function getDefaultValidator()
     {
-        $choices = $this->choices;
+        $choices      = $this->choices;
         $errorMessage = $this->errorMessage;
-        $multiselect = $this->multiselect;
-        $isAssoc = $this->isAssoc($choices);
+        $multiselect  = $this->multiselect;
+        $isAssoc      = $this->isAssoc($choices);
 
-        return function ($selected) use ($choices, $errorMessage, $multiselect, $isAssoc)
-        {
+        return function ($selected) use ($choices, $errorMessage, $multiselect, $isAssoc) {
             // Collapse all spaces.
             $selectedChoices = str_replace(' ', '', $selected);
 
-            if ($multiselect)
-            {
+            if ($multiselect) {
                 // Check for a separated comma values
-                if (!preg_match('/^[a-zA-Z0-9_-]+(?:,[a-zA-Z0-9_-]+)*$/', $selectedChoices, $matches))
-                {
+                if (!preg_match('/^[a-zA-Z0-9_-]+(?:,[a-zA-Z0-9_-]+)*$/', $selectedChoices, $matches)) {
                     throw new \InvalidArgumentException(sprintf($errorMessage, $selected));
                 }
                 $selectedChoices = explode(',', $selectedChoices);
-            } else
-            {
+            } else {
                 $selectedChoices = [$selected];
             }
 
             $multiselectChoices = [];
-            foreach ($selectedChoices as $value)
-            {
+            foreach ($selectedChoices as $value) {
                 $results = [];
-                foreach ($choices as $key => $choice)
-                {
-                    if ($choice === $value)
-                    {
+                foreach ($choices as $key => $choice) {
+                    if ($choice === $value) {
                         $results[] = $key;
                     }
                 }
 
-                if (count($results) > 1)
-                {
+                if (count($results) > 1) {
                     throw new \InvalidArgumentException(sprintf('The provided answer is ambiguous. Value should be one of %s.', implode(' or ', $results)));
                 }
 
                 $result = array_search($value, $choices);
 
-                if (!$isAssoc)
-                {
-                    if (!empty($result))
-                    {
+                if (!$isAssoc) {
+                    if (!empty($result)) {
                         $result = $choices[$result];
-                    } elseif (isset($choices[$value]))
-                    {
+                    } elseif (isset($choices[$value])) {
                         $result = $choices[$value];
                     }
-                } elseif (empty($result) && array_key_exists($value, $choices))
-                {
+                } elseif (empty($result) && array_key_exists($value, $choices)) {
                     $result = $value;
                 }
 
-                if (empty($result))
-                {
+                if (empty($result)) {
                     throw new \InvalidArgumentException(sprintf($errorMessage, $value));
                 }
                 array_push($multiselectChoices, $result);
             }
 
-            if ($multiselect)
-            {
+            if ($multiselect) {
                 return $multiselectChoices;
             }
 

@@ -16,17 +16,14 @@ class ThrowableError extends \ErrorException
     public function __construct(\Throwable $e)
     {
 
-        if ($e instanceof \ParseError)
-        {
-            $message = 'Parse error: ' . $e->getMessage();
+        if ($e instanceof \ParseError) {
+            $message  = 'Parse error: ' . $e->getMessage();
             $severity = E_PARSE;
-        } elseif ($e instanceof \TypeError)
-        {
-            $message = 'Type error: ' . $e->getMessage();
+        } elseif ($e instanceof \TypeError) {
+            $message  = 'Type error: ' . $e->getMessage();
             $severity = E_RECOVERABLE_ERROR;
-        } else
-        {
-            $message = 'Fatal error: ' . $e->getMessage();
+        } else {
+            $message  = 'Fatal error: ' . $e->getMessage();
             $severity = E_ERROR;
         }
 

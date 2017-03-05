@@ -17,7 +17,7 @@ use think\Exception;
 class Memcache extends SessionHandler
 {
     protected $handler = null;
-    protected $config = [
+    protected $config  = [
         'host'         => '127.0.0.1', // memcache主机
         'port'         => 11211, // memcache端口
         'expire'       => 3600, // session有效期
@@ -34,34 +34,29 @@ class Memcache extends SessionHandler
     /**
      * 打开Session
      * @access public
-     *
-     * @param string $savePath
-     * @param mixed  $sessName
+     * @param string    $savePath
+     * @param mixed     $sessName
      */
     public function open($savePath, $sessName)
     {
         // 检测php环境
-        if (!extension_loaded('memcache'))
-        {
+        if (!extension_loaded('memcache')) {
             throw new Exception('not support:memcache');
         }
         $this->handler = new \Memcache;
         // 支持集群
         $hosts = explode(',', $this->config['host']);
         $ports = explode(',', $this->config['port']);
-        if (empty($ports[0]))
-        {
+        if (empty($ports[0])) {
             $ports[0] = 11211;
         }
         // 建立连接
-        foreach ((array)$hosts as $i => $host)
-        {
+        foreach ((array) $hosts as $i => $host) {
             $port = isset($ports[$i]) ? $ports[$i] : $ports[0];
             $this->config['timeout'] > 0 ?
-                $this->handler->addServer($host, $port, $this->config['persistent'], 1, $this->config['timeout']) :
-                $this->handler->addServer($host, $port, $this->config['persistent'], 1);
+            $this->handler->addServer($host, $port, $this->config['persistent'], 1, $this->config['timeout']) :
+            $this->handler->addServer($host, $port, $this->config['persistent'], 1);
         }
-
         return true;
     }
 
@@ -74,28 +69,24 @@ class Memcache extends SessionHandler
         $this->gc(ini_get('session.gc_maxlifetime'));
         $this->handler->close();
         $this->handler = null;
-
         return true;
     }
 
     /**
      * 读取Session
      * @access public
-     *
      * @param string $sessID
      */
     public function read($sessID)
     {
-        return (string)$this->handler->get($this->config['session_name'] . $sessID);
+        return (string) $this->handler->get($this->config['session_name'] . $sessID);
     }
 
     /**
      * 写入Session
      * @access public
-     *
-     * @param string $sessID
-     * @param String $sessData
-     *
+     * @param string    $sessID
+     * @param String    $sessData
      * @return bool
      */
     public function write($sessID, $sessData)
@@ -106,9 +97,7 @@ class Memcache extends SessionHandler
     /**
      * 删除Session
      * @access public
-     *
      * @param string $sessID
-     *
      * @return bool
      */
     public function destroy($sessID)
@@ -119,9 +108,7 @@ class Memcache extends SessionHandler
     /**
      * Session 垃圾回收
      * @access public
-     *
      * @param string $sessMaxLifeTime
-     *
      * @return true
      */
     public function gc($sessMaxLifeTime)

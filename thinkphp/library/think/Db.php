@@ -24,7 +24,7 @@ use think\db\Query;
  * @method Query union(mixed $union, boolean $all = false) static UNION查询
  * @method Query limit(mixed $offset, integer $length = null) static 查询LIMIT
  * @method Query order(mixed $field, string $order = null) static 查询ORDER
- * @method Query cache(mixed $key = null, integer $expire = null) static 设置查询缓存
+ * @method Query cache(mixed $key = null , integer $expire = null) static 设置查询缓存
  * @method mixed value(string $field) static 获取某个字段的值
  * @method array column(string $field, string $key = '') static 获取某个列的值
  * @method Query view(mixed $join, mixed $field = null, mixed $on = null, string $type = 'INNER') static 视图查询
@@ -58,42 +58,33 @@ class Db
      * 数据库初始化 并取得数据库类实例
      * @static
      * @access public
-     *
-     * @param mixed       $config 连接配置
-     * @param bool|string $name 连接标识 true 强制重新连接
-     *
+     * @param mixed         $config 连接配置
+     * @param bool|string   $name 连接标识 true 强制重新连接
      * @return Connection
      * @throws Exception
      */
     public static function connect($config = [], $name = false)
     {
-        if (false === $name)
-        {
+        if (false === $name) {
             $name = md5(serialize($config));
         }
-        if (true === $name || !isset(self::$instance[$name]))
-        {
+        if (true === $name || !isset(self::$instance[$name])) {
             // 解析连接参数 支持数组和字符串
             $options = self::parseConfig($config);
-            if (empty($options['type']))
-            {
+            if (empty($options['type'])) {
                 throw new \InvalidArgumentException('Underfined db type');
             }
             $class = false !== strpos($options['type'], '\\') ? $options['type'] : '\\think\\db\\connector\\' . ucwords($options['type']);
             // 记录初始化信息
-            if (App::$debug)
-            {
+            if (App::$debug) {
                 Log::record('[ DB ] INIT ' . $options['type'], 'info');
             }
-            if (true === $name)
-            {
+            if (true === $name) {
                 return new $class($options);
-            } else
-            {
+            } else {
                 self::$instance[$name] = new $class($options);
             }
         }
-
         return self::$instance[$name];
     }
 
@@ -101,26 +92,20 @@ class Db
      * 数据库连接参数解析
      * @static
      * @access private
-     *
      * @param mixed $config
-     *
      * @return array
      */
     private static function parseConfig($config)
     {
-        if (empty($config))
-        {
+        if (empty($config)) {
             $config = Config::get('database');
-        } elseif (is_string($config) && false === strpos($config, '/'))
-        {
+        } elseif (is_string($config) && false === strpos($config, '/')) {
             // 支持读取配置参数
             $config = Config::get($config);
         }
-        if (is_string($config))
-        {
+        if (is_string($config)) {
             return self::parseDsn($config);
-        } else
-        {
+        } else {
             return $config;
         }
     }
@@ -130,16 +115,13 @@ class Db
      * 格式： mysql://username:passwd@localhost:3306/DbName?param1=val1&param2=val2#utf8
      * @static
      * @access private
-     *
      * @param string $dsnStr
-     *
      * @return array
      */
     private static function parseDsn($dsnStr)
     {
         $info = parse_url($dsnStr);
-        if (!$info)
-        {
+        if (!$info) {
             return [];
         }
         $dsn = [
@@ -152,14 +134,11 @@ class Db
             'charset'  => isset($info['fragment']) ? $info['fragment'] : 'utf8',
         ];
 
-        if (isset($info['query']))
-        {
+        if (isset($info['query'])) {
             parse_str($info['query'], $dsn['params']);
-        } else
-        {
+        } else {
             $dsn['params'] = [];
         }
-
         return $dsn;
     }
 

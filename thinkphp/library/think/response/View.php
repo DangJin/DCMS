@@ -18,17 +18,15 @@ use think\View as ViewTemplate;
 class View extends Response
 {
     // 输出参数
-    protected $options = [];
-    protected $vars = [];
-    protected $replace = [];
+    protected $options     = [];
+    protected $vars        = [];
+    protected $replace     = [];
     protected $contentType = 'text/html';
 
     /**
      * 处理数据
      * @access protected
-     *
      * @param mixed $data 要处理的数据
-     *
      * @return mixed
      */
     protected function output($data)
@@ -41,18 +39,14 @@ class View extends Response
     /**
      * 获取视图变量
      * @access public
-     *
      * @param string $name 模板变量
-     *
      * @return mixed
      */
     public function getVars($name = null)
     {
-        if (is_null($name))
-        {
+        if (is_null($name)) {
             return $this->vars;
-        } else
-        {
+        } else {
             return isset($this->vars[$name]) ? $this->vars[$name] : null;
         }
     }
@@ -60,46 +54,35 @@ class View extends Response
     /**
      * 模板变量赋值
      * @access public
-     *
-     * @param mixed $name 变量名
+     * @param mixed $name  变量名
      * @param mixed $value 变量值
-     *
      * @return $this
      */
     public function assign($name, $value = '')
     {
-        if (is_array($name))
-        {
+        if (is_array($name)) {
             $this->vars = array_merge($this->vars, $name);
-
             return $this;
-        } else
-        {
+        } else {
             $this->vars[$name] = $value;
         }
-
         return $this;
     }
 
     /**
      * 视图内容替换
      * @access public
-     *
      * @param string|array $content 被替换内容（支持批量替换）
-     * @param string       $replace 替换内容
-     *
+     * @param string  $replace    替换内容
      * @return $this
      */
     public function replace($content, $replace = '')
     {
-        if (is_array($content))
-        {
+        if (is_array($content)) {
             $this->replace = array_merge($this->replace, $content);
-        } else
-        {
+        } else {
             $this->replace[$content] = $replace;
         }
-
         return $this;
     }
 

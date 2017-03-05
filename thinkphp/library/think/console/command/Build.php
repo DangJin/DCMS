@@ -34,25 +34,19 @@ class Build extends Command
 
     protected function execute(Input $input, Output $output)
     {
-        if ($input->hasOption('module'))
-        {
+        if ($input->hasOption('module')) {
             \think\Build::module($input->getOption('module'));
             $output->writeln("Successed");
-
             return;
         }
 
-        if ($input->hasOption('config'))
-        {
+        if ($input->hasOption('config')) {
             $build = include $input->getOption('config');
-        } else
-        {
+        } else {
             $build = include APP_PATH . 'build.php';
         }
-        if (empty($build))
-        {
+        if (empty($build)) {
             $output->writeln("Build Config Is Empty");
-
             return;
         }
         \think\Build::run($build);

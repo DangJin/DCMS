@@ -30,8 +30,7 @@ class Console
     // 实例化并传入参数
     public function __construct($config = [])
     {
-        if (is_array($config))
-        {
+        if (is_array($config)) {
             $this->config = array_merge($this->config, $config);
         }
     }
@@ -39,34 +38,28 @@ class Console
     /**
      * 调试输出接口
      * @access public
-     *
-     * @param Response $response Response对象
-     * @param array    $log 日志信息
-     *
+     * @param Response  $response Response对象
+     * @param array     $log 日志信息
      * @return bool
      */
     public function output(Response $response, array $log = [])
     {
-        $request = Request::instance();
+        $request     = Request::instance();
         $contentType = $response->getHeader('Content-Type');
-        $accept = $request->header('accept');
-        if (strpos($accept, 'application/json') === 0 || $request->isAjax())
-        {
+        $accept      = $request->header('accept');
+        if (strpos($accept, 'application/json') === 0 || $request->isAjax()) {
             return false;
-        } elseif (!empty($contentType) && strpos($contentType, 'html') === false)
-        {
+        } elseif (!empty($contentType) && strpos($contentType, 'html') === false) {
             return false;
         }
         // 获取基本信息
         $runtime = number_format(microtime(true) - THINK_START_TIME, 10);
-        $reqs = $runtime > 0 ? number_format(1 / $runtime, 2) : '∞';
-        $mem = number_format((memory_get_usage() - THINK_START_MEM) / 1024, 2);
+        $reqs    = $runtime > 0 ? number_format(1 / $runtime, 2) : '∞';
+        $mem     = number_format((memory_get_usage() - THINK_START_MEM) / 1024, 2);
 
-        if (isset($_SERVER['HTTP_HOST']))
-        {
+        if (isset($_SERVER['HTTP_HOST'])) {
             $uri = $_SERVER['SERVER_PROTOCOL'] . ' ' . $_SERVER['REQUEST_METHOD'] . ' : ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        } else
-        {
+        } else {
             $uri = 'cmd:' . implode(' ', $_SERVER['argv']);
         }
 
@@ -79,8 +72,7 @@ class Console
             '配置加载' => count(Config::get()),
         ];
 
-        if (session_id())
-        {
+        if (session_id()) {
             $base['会话信息'] = 'SESSION_ID=' . session_id();
         }
 
@@ -88,11 +80,9 @@ class Console
 
         // 页面Trace信息
         $trace = [];
-        foreach ($this->config['trace_tabs'] as $name => $title)
-        {
+        foreach ($this->config['trace_tabs'] as $name => $title) {
             $name = strtolower($name);
-            switch ($name)
-            {
+            switch ($name) {
                 case 'base': // 基本信息
                     $trace[$title] = $base;
                     break;
@@ -100,18 +90,15 @@ class Console
                     $trace[$title] = $info;
                     break;
                 default: // 调试信息
-                    if (strpos($name, '|'))
-                    {
+                    if (strpos($name, '|')) {
                         // 多组信息
-                        $names = explode('|', $name);
+                        $names  = explode('|', $name);
                         $result = [];
-                        foreach ($names as $name)
-                        {
+                        foreach ($names as $name) {
                             $result = array_merge($result, isset($log[$name]) ? $log[$name] : []);
                         }
                         $trace[$title] = $result;
-                    } else
-                    {
+                    } else {
                         $trace[$title] = isset($log[$name]) ? $log[$name] : '';
                     }
             }
@@ -119,8 +106,7 @@ class Console
 
         //输出到控制台
         $lines = '';
-        foreach ($trace as $type => $msg)
-        {
+        foreach ($trace as $type => $msg) {
             $lines .= $this->console($type, $msg);
         }
         $js = <<<JS
@@ -129,51 +115,45 @@ class Console
 {$lines}
 </script>
 JS;
-
         return $js;
     }
 
     protected function console($type, $msg)
     {
-        $type = strtolower($type);
+        $type       = strtolower($type);
         $trace_tabs = array_values($this->config['trace_tabs']);
-        $line[] = ($type == $trace_tabs[0] || '调试' == $type || '错误' == $type)
-            ? "console.group('{$type}');"
-            : "console.groupCollapsed('{$type}');";
+        $line[]     = ($type == $trace_tabs[0] || '调试' == $type || '错误' == $type)
+        ? "console.group('{$type}');"
+        : "console.groupCollapsed('{$type}');";
 
-        foreach ((array)$msg as $key => $m)
-        {
-            switch ($type)
-            {
+        foreach ((array) $msg as $key => $m) {
+            switch ($type) {
                 case '调试':
                     $var_type = gettype($m);
-                    if (in_array($var_type, ['array', 'string']))
-                    {
+                    if (in_array($var_type, ['array', 'string'])) {
                         $line[] = "console.log(" . json_encode($m) . ");";
-                    } else
-                    {
+                    } else {
                         $line[] = "console.log(" . json_encode(var_export($m, 1)) . ");";
                     }
                     break;
                 case '错误':
-                    $msg = str_replace("\n", '\n', $m);
-                    $style = 'color:#F4006B;font-size:14px;';
+                    $msg    = str_replace("\n", '\n', $m);
+                    $style  = 'color:#F4006B;font-size:14px;';
                     $line[] = "console.error(\"%c{$msg}\", \"{$style}\");";
                     break;
                 case 'sql':
-                    $msg = str_replace("\n", '\n', $m);
-                    $style = "color:#009bb4;";
+                    $msg    = str_replace("\n", '\n', $m);
+                    $style  = "color:#009bb4;";
                     $line[] = "console.log(\"%c{$msg}\", \"{$style}\");";
                     break;
                 default:
-                    $m = is_string($key) ? $key . ' ' . $m : $key + 1 . ' ' . $m;
-                    $msg = json_encode($m);
+                    $m      = is_string($key) ? $key . ' ' . $m : $key + 1 . ' ' . $m;
+                    $msg    = json_encode($m);
                     $line[] = "console.log({$msg});";
                     break;
             }
         }
         $line[] = "console.groupEnd();";
-
         return implode(PHP_EOL, $line);
     }
 

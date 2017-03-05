@@ -16,7 +16,7 @@ class Question
 
     private $question;
     private $attempts;
-    private $hidden = false;
+    private $hidden         = false;
     private $hiddenFallback = true;
     private $autocompleterValues;
     private $validator;
@@ -25,14 +25,13 @@ class Question
 
     /**
      * 构造方法
-     *
      * @param string $question 问题
-     * @param mixed  $default 默认答案
+     * @param mixed  $default  默认答案
      */
     public function __construct($question, $default = null)
     {
         $this->question = $question;
-        $this->default = $default;
+        $this->default  = $default;
     }
 
     /**
@@ -64,19 +63,16 @@ class Question
 
     /**
      * 隐藏答案
-     *
      * @param bool $hidden
-     *
      * @return Question
      */
     public function setHidden($hidden)
     {
-        if ($this->autocompleterValues)
-        {
+        if ($this->autocompleterValues) {
             throw new \LogicException('A hidden question cannot use the autocompleter.');
         }
 
-        $this->hidden = (bool)$hidden;
+        $this->hidden = (bool) $hidden;
 
         return $this;
     }
@@ -92,14 +88,12 @@ class Question
 
     /**
      * 设置不能被隐藏的时候的操作
-     *
      * @param bool $fallback
-     *
      * @return Question
      */
     public function setHiddenFallback($fallback)
     {
-        $this->hiddenFallback = (bool)$fallback;
+        $this->hiddenFallback = (bool) $fallback;
 
         return $this;
     }
@@ -115,30 +109,24 @@ class Question
 
     /**
      * 设置自动完成的值
-     *
      * @param null|array|\Traversable $values
-     *
      * @return Question
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
     public function setAutocompleterValues($values)
     {
-        if (is_array($values) && $this->isAssoc($values))
-        {
+        if (is_array($values) && $this->isAssoc($values)) {
             $values = array_merge(array_keys($values), array_values($values));
         }
 
-        if (null !== $values && !is_array($values))
-        {
-            if (!$values instanceof \Traversable || $values instanceof \Countable)
-            {
+        if (null !== $values && !is_array($values)) {
+            if (!$values instanceof \Traversable || $values instanceof \Countable) {
                 throw new \InvalidArgumentException('Autocompleter values can be either an array, `null` or an object implementing both `Countable` and `Traversable` interfaces.');
             }
         }
 
-        if ($this->hidden)
-        {
+        if ($this->hidden) {
             throw new \LogicException('A hidden question cannot use the autocompleter.');
         }
 
@@ -149,9 +137,7 @@ class Question
 
     /**
      * 设置答案的验证器
-     *
      * @param null|callable $validator
-     *
      * @return Question The current instance
      */
     public function setValidator($validator)
@@ -172,16 +158,13 @@ class Question
 
     /**
      * 设置最大重试次数
-     *
      * @param null|int $attempts
-     *
      * @return Question
      * @throws \InvalidArgumentException
      */
     public function setMaxAttempts($attempts)
     {
-        if (null !== $attempts && $attempts < 1)
-        {
+        if (null !== $attempts && $attempts < 1) {
             throw new \InvalidArgumentException('Maximum number of attempts must be a positive value.');
         }
 
@@ -201,9 +184,7 @@ class Question
 
     /**
      * 设置响应的回调
-     *
      * @param string|\Closure $normalizer
-     *
      * @return Question
      */
     public function setNormalizer($normalizer)
@@ -225,6 +206,6 @@ class Question
 
     protected function isAssoc($array)
     {
-        return (bool)count(array_filter(array_keys($array), 'is_string'));
+        return (bool) count(array_filter(array_keys($array), 'is_string'));
     }
 }

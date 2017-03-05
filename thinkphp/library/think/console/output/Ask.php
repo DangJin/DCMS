@@ -33,27 +33,24 @@ class Ask
 
     public function __construct(Input $input, Output $output, Question $question)
     {
-        $this->input = $input;
-        $this->output = $output;
+        $this->input    = $input;
+        $this->output   = $output;
         $this->question = $question;
     }
 
     public function run()
     {
-        if (!$this->input->isInteractive())
-        {
+        if (!$this->input->isInteractive()) {
             return $this->question->getDefault();
         }
 
-        if (!$this->question->getValidator())
-        {
+        if (!$this->question->getValidator()) {
             return $this->doAsk();
         }
 
         $that = $this;
 
-        $interviewer = function () use ($that)
-        {
+        $interviewer = function () use ($that) {
             return $that->doAsk();
         };
 
@@ -64,44 +61,35 @@ class Ask
     {
         $this->writePrompt();
 
-        $inputStream = STDIN;
+        $inputStream  = STDIN;
         $autocomplete = $this->question->getAutocompleterValues();
 
-        if (null === $autocomplete || !$this->hasSttyAvailable())
-        {
+        if (null === $autocomplete || !$this->hasSttyAvailable()) {
             $ret = false;
-            if ($this->question->isHidden())
-            {
-                try
-                {
+            if ($this->question->isHidden()) {
+                try {
                     $ret = trim($this->getHiddenResponse($inputStream));
-                } catch (\RuntimeException $e)
-                {
-                    if (!$this->question->isHiddenFallback())
-                    {
+                } catch (\RuntimeException $e) {
+                    if (!$this->question->isHiddenFallback()) {
                         throw $e;
                     }
                 }
             }
 
-            if (false === $ret)
-            {
+            if (false === $ret) {
                 $ret = fgets($inputStream, 4096);
-                if (false === $ret)
-                {
+                if (false === $ret) {
                     throw new \RuntimeException('Aborted');
                 }
                 $ret = trim($ret);
             }
-        } else
-        {
+        } else {
             $ret = trim($this->autocomplete($inputStream));
         }
 
         $ret = strlen($ret) > 0 ? $ret : $this->question->getDefault();
 
-        if ($normalizer = $this->question->getNormalizer())
-        {
+        if ($normalizer = $this->question->getNormalizer()) {
             return $normalizer($ret);
         }
 
@@ -111,72 +99,59 @@ class Ask
     private function autocomplete($inputStream)
     {
         $autocomplete = $this->question->getAutocompleterValues();
-        $ret = '';
+        $ret          = '';
 
-        $i = 0;
-        $ofs = -1;
-        $matches = $autocomplete;
+        $i          = 0;
+        $ofs        = -1;
+        $matches    = $autocomplete;
         $numMatches = count($matches);
 
         $sttyMode = shell_exec('stty -g');
 
         shell_exec('stty -icanon -echo');
 
-        while (!feof($inputStream))
-        {
+        while (!feof($inputStream)) {
             $c = fread($inputStream, 1);
 
-            if ("\177" === $c)
-            {
-                if (0 === $numMatches && 0 !== $i)
-                {
+            if ("\177" === $c) {
+                if (0 === $numMatches && 0 !== $i) {
                     --$i;
                     $this->output->write("\033[1D");
                 }
 
-                if ($i === 0)
-                {
-                    $ofs = -1;
-                    $matches = $autocomplete;
+                if ($i === 0) {
+                    $ofs        = -1;
+                    $matches    = $autocomplete;
                     $numMatches = count($matches);
-                } else
-                {
+                } else {
                     $numMatches = 0;
                 }
 
                 $ret = substr($ret, 0, $i);
-            } elseif ("\033" === $c)
-            {
+            } elseif ("\033" === $c) {
                 $c .= fread($inputStream, 2);
 
-                if (isset($c[2]) && ('A' === $c[2] || 'B' === $c[2]))
-                {
-                    if ('A' === $c[2] && -1 === $ofs)
-                    {
+                if (isset($c[2]) && ('A' === $c[2] || 'B' === $c[2])) {
+                    if ('A' === $c[2] && -1 === $ofs) {
                         $ofs = 0;
                     }
 
-                    if (0 === $numMatches)
-                    {
+                    if (0 === $numMatches) {
                         continue;
                     }
 
                     $ofs += ('A' === $c[2]) ? -1 : 1;
                     $ofs = ($numMatches + $ofs) % $numMatches;
                 }
-            } elseif (ord($c) < 32)
-            {
-                if ("\t" === $c || "\n" === $c)
-                {
-                    if ($numMatches > 0 && -1 !== $ofs)
-                    {
+            } elseif (ord($c) < 32) {
+                if ("\t" === $c || "\n" === $c) {
+                    if ($numMatches > 0 && -1 !== $ofs) {
                         $ret = $matches[$ofs];
                         $this->output->write(substr($ret, $i));
                         $i = strlen($ret);
                     }
 
-                    if ("\n" === $c)
-                    {
+                    if ("\n" === $c) {
                         $this->output->write($c);
                         break;
                     }
@@ -185,19 +160,16 @@ class Ask
                 }
 
                 continue;
-            } else
-            {
+            } else {
                 $this->output->write($c);
                 $ret .= $c;
                 ++$i;
 
                 $numMatches = 0;
-                $ofs = 0;
+                $ofs        = 0;
 
-                foreach ($autocomplete as $value)
-                {
-                    if (0 === strpos($value, $ret) && $i !== strlen($value))
-                    {
+                foreach ($autocomplete as $value) {
+                    if (0 === strpos($value, $ret) && $i !== strlen($value)) {
                         $matches[$numMatches++] = $value;
                     }
                 }
@@ -205,8 +177,7 @@ class Ask
 
             $this->output->write("\033[K");
 
-            if ($numMatches > 0 && -1 !== $ofs)
-            {
+            if ($numMatches > 0 && -1 !== $ofs) {
                 $this->output->write("\0337");
                 $this->output->highlight(substr($matches[$ofs], $i));
                 $this->output->write("\0338");
@@ -220,31 +191,27 @@ class Ask
 
     protected function getHiddenResponse($inputStream)
     {
-        if ('\\' === DIRECTORY_SEPARATOR)
-        {
+        if ('\\' === DIRECTORY_SEPARATOR) {
             $exe = __DIR__ . '/../bin/hiddeninput.exe';
 
             $value = rtrim(shell_exec($exe));
             $this->output->writeln('');
 
-            if (isset($tmpExe))
-            {
+            if (isset($tmpExe)) {
                 unlink($tmpExe);
             }
 
             return $value;
         }
 
-        if ($this->hasSttyAvailable())
-        {
+        if ($this->hasSttyAvailable()) {
             $sttyMode = shell_exec('stty -g');
 
             shell_exec('stty -echo');
             $value = fgets($inputStream, 4096);
             shell_exec(sprintf('stty %s', $sttyMode));
 
-            if (false === $value)
-            {
+            if (false === $value) {
                 throw new \RuntimeException('Aborted');
             }
 
@@ -254,11 +221,10 @@ class Ask
             return $value;
         }
 
-        if (false !== $shell = $this->getShell())
-        {
+        if (false !== $shell = $this->getShell()) {
             $readCmd = $shell === 'csh' ? 'set mypassword = $<' : 'read -r mypassword';
             $command = sprintf("/usr/bin/env %s -c 'stty -echo; %s; stty echo; echo \$mypassword'", $shell, $readCmd);
-            $value = rtrim(shell_exec($command));
+            $value   = rtrim(shell_exec($command));
             $this->output->writeln('');
 
             return $value;
@@ -270,20 +236,16 @@ class Ask
     protected function validateAttempts($interviewer)
     {
         /** @var \Exception $error */
-        $error = null;
+        $error    = null;
         $attempts = $this->question->getMaxAttempts();
-        while (null === $attempts || $attempts--)
-        {
-            if (null !== $error)
-            {
+        while (null === $attempts || $attempts--) {
+            if (null !== $error) {
                 $this->output->error($error->getMessage());
             }
 
-            try
-            {
+            try {
                 return call_user_func($this->question->getValidator(), $interviewer());
-            } catch (\Exception $error)
-            {
+            } catch (\Exception $error) {
             }
         }
 
@@ -295,11 +257,10 @@ class Ask
      */
     protected function writePrompt()
     {
-        $text = $this->question->getQuestion();
+        $text    = $this->question->getQuestion();
         $default = $this->question->getDefault();
 
-        switch (true)
-        {
+        switch (true) {
             case null === $default:
                 $text = sprintf(' <info>%s</info>:', $text);
 
@@ -314,8 +275,7 @@ class Ask
                 $choices = $this->question->getChoices();
                 $default = explode(',', $default);
 
-                foreach ($default as $key => $value)
-                {
+                foreach ($default as $key => $value) {
                     $default[$key] = $choices[trim($value)];
                 }
 
@@ -325,7 +285,7 @@ class Ask
 
             case $this->question instanceof Choice:
                 $choices = $this->question->getChoices();
-                $text = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, $choices[$default]);
+                $text    = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, $choices[$default]);
 
                 break;
 
@@ -335,12 +295,10 @@ class Ask
 
         $this->output->writeln($text);
 
-        if ($this->question instanceof Choice)
-        {
+        if ($this->question instanceof Choice) {
             $width = max(array_map('strlen', array_keys($this->question->getChoices())));
 
-            foreach ($this->question->getChoices() as $key => $value)
-            {
+            foreach ($this->question->getChoices() as $key => $value) {
                 $this->output->writeln(sprintf("  [<comment>%-${width}s</comment>] %s", $key, $value));
             }
         }
@@ -350,20 +308,16 @@ class Ask
 
     private function getShell()
     {
-        if (null !== self::$shell)
-        {
+        if (null !== self::$shell) {
             return self::$shell;
         }
 
         self::$shell = false;
 
-        if (file_exists('/usr/bin/env'))
-        {
+        if (file_exists('/usr/bin/env')) {
             $test = "/usr/bin/env %s -c 'echo OK' 2> /dev/null";
-            foreach (['bash', 'zsh', 'ksh', 'csh'] as $sh)
-            {
-                if ('OK' === rtrim(shell_exec(sprintf($test, $sh))))
-                {
+            foreach (['bash', 'zsh', 'ksh', 'csh'] as $sh) {
+                if ('OK' === rtrim(shell_exec(sprintf($test, $sh)))) {
                     self::$shell = $sh;
                     break;
                 }
@@ -375,8 +329,7 @@ class Ask
 
     private function hasSttyAvailable()
     {
-        if (null !== self::$stty)
-        {
+        if (null !== self::$stty) {
             return self::$stty;
         }
 
