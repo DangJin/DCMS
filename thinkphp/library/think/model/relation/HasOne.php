@@ -18,9 +18,10 @@ use think\Model;
 class HasOne extends OneToOne
 {
     /**
-     * 架构函数
+     * 构造函数
      * @access public
-     * @param Model  $parent     上级模型对象
+     *
+*@param Model  $parent     上级模型对象
      * @param string $model      模型名
      * @param string $foreignKey 关联外键
      * @param string $localKey   关联主键
@@ -46,11 +47,30 @@ class HasOne extends OneToOne
     {
         // 执行关联定义方法
         $localKey = $this->localKey;
-        if ($closure) {
+        if ($closure)
+        {
             call_user_func_array($closure, [& $this->query]);
         }
         // 判断关联类型执行查询
         return $this->query->where($this->foreignKey, $this->parent->$localKey)->relation($subRelation)->find();
+    }
+
+    /**
+     * 根据关联条件查询当前模型
+     * @access public
+     * @return Query
+     */
+    public function has()
+    {
+        $table = $this->query->getTable();
+        $localKey = $this->localKey;
+        $foreignKey = $this->foreignKey;
+
+        return $this->parent->db()->alias('a')
+            ->whereExists(function ($query) use ($table, $localKey, $foreignKey)
+            {
+                $query->table([$table => 'b'])->field('b.' . $foreignKey)->whereExp('a.' . $localKey, '=b.' . $foreignKey);
+            });
     }
 
     /**

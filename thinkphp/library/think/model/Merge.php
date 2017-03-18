@@ -22,9 +22,10 @@ class Merge extends Model
     protected $mapFields     = []; //  需要处理的模型映射字段，避免混淆 array( id => 'user.id'  )
 
     /**
-     * 架构函数
+     * 构造函数
      * @access public
-     * @param array|object $data 数据
+     *
+*@param array|object $data 数据
      */
     public function __construct($data = [])
     {

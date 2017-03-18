@@ -14,7 +14,7 @@ namespace think;
 use InvalidArgumentException;
 use think\db\Query;
 use think\Exception\ValidateException;
-use think\model\Collection;
+use think\model\Collection as ModelCollection;
 use think\model\Relation;
 use think\model\relation\BelongsTo;
 use think\model\relation\BelongsToMany;
@@ -109,9 +109,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     protected static $initialized = [];
 
     /**
-     * 架构函数
+     * 构造方法
      * @access public
-     * @param array|object $data 数据
+     *
+*@param array|object $data 数据
      */
     public function __construct($data = [])
     {
@@ -290,9 +291,12 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         }
 
         // 标记字段更改
-        if (isset($this->data[$name]) && is_scalar($this->data[$name]) && is_scalar($value) && 0 !== strcmp($this->data[$name], $value)) {
+        if (!isset($this->data[$name])) {
             $this->change[] = $name;
-        } elseif (!isset($this->data[$name]) || $value != $this->data[$name]) {
+        } elseif (is_scalar($value) && is_scalar($this->data[$name]) && 0 !== strcmp($this->data[$name], $value)) {
+            $this->change[] = $name;
+        } elseif (!is_object($value) && $value != $this->data[$name])
+        {
             $this->change[] = $name;
         }
         // 设置数据对象属性
@@ -508,7 +512,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 $value = json_decode($value, true);
                 break;
             case 'array':
-                $value = is_null($value) ? [] : json_decode($value, true);
+                $value = empty($value) ? [] : json_decode($value, true);
                 break;
             case 'object':
                 $value = empty($value) ? new \stdClass() : json_decode($value);
@@ -624,11 +628,13 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     /**
      * 转换子模型对象
      * @access protected
-     * @param Model|Collection $model
+     *
+     * @param Model|ModelCollection $model
      * @param                  $visible
      * @param                  $hidden
      * @param                  $key
-     * @return array
+     *
+*@return array
      */
     protected function subToArray($model, $visible, $hidden, $key)
     {
@@ -662,8 +668,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             $data = $this->data;
         }
 
-        foreach ($data as $key => $val) {
-            if ($val instanceof Model || $val instanceof Collection) {
+        foreach ($data as $key => $val)
+        {
+            if ($val instanceof Model || $val instanceof ModelCollection) {
                 // 关联模型对象
                 $item[$key] = $this->subToArray($val, $visible, $hidden, $key);
             } elseif (is_array($val) && reset($val) instanceof Model) {
@@ -712,14 +719,17 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     /**
      * 转换当前模型数据集为数据集对象
      * @access public
-     * @param array|Collection $collection 数据集
-     * @return Collection
+     *
+     * @param array|\think\Collection $collection 数据集
+     *
+     * @return \think\Collection
      */
     public function toCollection($collection)
     {
         if ($this->resultSetType) {
-            if ('collection' == $this->resultSetType) {
-                $collection = new Collection($collection);
+            if ('collection' == $this->resultSetType)
+            {
+                $collection = new ModelCollection($collection);
             } elseif (false !== strpos($this->resultSetType, '\\')) {
                 $class      = $this->resultSetType;
                 $collection = new $class($collection);
@@ -1081,7 +1091,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
 
         // 删除条件
         $pk = $this->getPk();
-        if (isset($this->data[$pk])) {
+        if (is_string($pk) && isset($this->data[$pk])) {
             $where = [$pk => $this->data[$pk]];
         } elseif (!empty($this->updateWhere)) {
             $where = $this->updateWhere;
@@ -1426,16 +1436,13 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      */
     public static function has($relation, $operator = '>=', $count = 1, $id = '*')
     {
-        $model    = new static();
-        $relation = $model->$relation();
-        if ($relation instanceof HasMany) {
-            if (is_array($operator) || $operator instanceof \Closure) {
-                return $relation->hasWhere($operator);
-            }
-            return $relation->has($operator, $count, $id);
-        } else {
-            return $relation;
+        $relation = (new static())->$relation();
+        if (is_array($operator) || $operator instanceof \Closure)
+        {
+            return $relation->hasWhere($operator);
         }
+
+        return $relation->has($operator, $count, $id);
     }
 
     /**
@@ -1447,13 +1454,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      */
     public static function hasWhere($relation, $where = [])
     {
-        $model    = new static();
-        $relation = $model->$relation();
-        if ($relation instanceof HasMany) {
-            return $relation->hasWhere($where);
-        } else {
-            return $relation;
-        }
+        return (new static())->$relation()->hasWhere($where);
     }
 
     /**
@@ -1493,7 +1494,11 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 $closure  = $relation;
                 $relation = $key;
             }
-            if (strpos($relation, '.')) {
+            if (is_array($relation))
+            {
+                $subRelation = $relation;
+                $relation = $key;
+            } elseif (strpos($relation, '.')) {
                 list($relation, $subRelation) = explode('.', $relation, 2);
             }
             $method                = Loader::parseName($relation, 1, false);
@@ -1519,7 +1524,11 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 $closure  = $relation;
                 $relation = $key;
             }
-            if (strpos($relation, '.')) {
+            if (is_array($relation))
+            {
+                $subRelation = $relation;
+                $relation = $key;
+            } elseif (strpos($relation, '.')) {
                 list($relation, $subRelation) = explode('.', $relation, 2);
             }
             $relation = Loader::parseName($relation, 1, false);
@@ -1545,7 +1554,11 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 $closure  = $relation;
                 $relation = $key;
             }
-            if (strpos($relation, '.')) {
+            if (is_array($relation))
+            {
+                $subRelation = $relation;
+                $relation = $key;
+            } elseif (strpos($relation, '.')) {
                 list($relation, $subRelation) = explode('.', $relation, 2);
             }
             $relation = Loader::parseName($relation, 1, false);
@@ -1569,10 +1582,18 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             if ($relation instanceof \Closure) {
                 $closure  = $relation;
                 $relation = $key;
+            } elseif (is_string($key))
+            {
+                $name = $relation;
+                $relation = $key;
             }
             $relation = Loader::parseName($relation, 1, false);
             $count    = $this->$relation()->relationCount($result, $closure);
-            $result->setAttr(Loader::parseName($relation) . '_count', $count);
+            if (!isset($name))
+            {
+                $name = Loader::parseName($relation) . '_count';
+            }
+            $result->setAttr($name, $count);
         }
     }
 

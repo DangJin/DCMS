@@ -68,9 +68,10 @@ class TagLib
     protected $comparison = [' nheq ' => ' !== ', ' heq ' => ' === ', ' neq ' => ' != ', ' eq ' => ' == ', ' egt ' => ' >= ', ' gt ' => ' > ', ' elt ' => ' <= ', ' lt ' => ' < '];
 
     /**
-     * 架构函数
+     * 构造函数
      * @access public
-     * @param \stdClass $template 模板引擎对象
+     *
+*@param \stdClass $template 模板引擎对象
      */
     public function __construct($template)
     {

@@ -25,9 +25,11 @@ class Wincache extends Driver
     ];
 
     /**
-     * 架构函数
-     * @param array $options 缓存参数
-     * @throws \BadFunctionCallException
+     * 构造函数
+     *
+*@param array $options 缓存参数
+     *
+*@throws \BadFunctionCallException
      * @access public
      */
     public function __construct($options = [])

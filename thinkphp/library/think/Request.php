@@ -120,9 +120,10 @@ class Request
     protected $isCheckCache;
 
     /**
-     * 架构函数
+     * 构造函数
      * @access protected
-     * @param array $options 参数
+     *
+*@param array $options 参数
      */
     protected function __construct($options = [])
     {
@@ -633,7 +634,7 @@ class Request
         if (true === $name) {
             // 获取包含文件上传信息的数组
             $file = $this->file();
-            $data = array_merge($this->param, $file);
+            $data = is_array($file) ? array_merge($this->param, $file) : $this->param;
             return $this->input($data, '', $default, $filter);
         }
         return $this->input($this->param, $name, $default, $filter);
@@ -688,7 +689,7 @@ class Request
     {
         if (empty($this->post)) {
             $content = $this->input;
-            if (empty($_POST) && 'application/json' == $this->contentType()) {
+            if (empty($_POST) && false !== strpos($this->contentType(), 'application/json')) {
                 $this->post = (array) json_decode($content, true);
             } else {
                 $this->post = $_POST;
@@ -713,7 +714,7 @@ class Request
     {
         if (is_null($this->put)) {
             $content = $this->input;
-            if ('application/json' == $this->contentType()) {
+            if (false !== strpos($this->contentType(), 'application/json')) {
                 $this->put = (array) json_decode($content, true);
             } else {
                 parse_str($content, $this->put);
@@ -1356,8 +1357,15 @@ class Request
     public function contentType()
     {
         $contentType = $this->server('CONTENT_TYPE');
-        if ($contentType) {
-            list($type) = explode(';', $contentType);
+        if ($contentType)
+        {
+            if (strpos($contentType, ';'))
+            {
+                list($type) = explode(';', $contentType);
+            } else
+            {
+                $type = $contentType;
+            }
             return trim($type);
         }
         return '';
@@ -1523,13 +1531,14 @@ class Request
                     }
                 }
                 // 自动缓存功能
-                $key = '__URL__';
+                $key = md5($this->host()) . '__URL__';
             } elseif (strpos($key, '|')) {
                 list($key, $fun) = explode('|', $key);
             }
             // 特殊规则替换
-            if (false !== strpos($key, '__')) {
-                $key = str_replace(['__MODULE__', '__CONTROLLER__', '__ACTION__', '__URL__'], [$this->module, $this->controller, $this->action, md5($this->url())], $key);
+            if (false !== strpos($key, '__'))
+            {
+                $key = str_replace(['__MODULE__', '__CONTROLLER__', '__ACTION__', '__URL__', ''], [$this->module, $this->controller, $this->action, md5($this->url())], $key);
             }
 
             if (false !== strpos($key, ':')) {

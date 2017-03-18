@@ -67,6 +67,7 @@ abstract class OneToOne extends Relation
                 $field = true;
             }
             $query->field($field, false, $table, $alias);
+            $field = null;
         }
 
         // 预载入封装
@@ -91,10 +92,8 @@ abstract class OneToOne extends Relation
             }
         } elseif (isset($this->option['field'])) {
             $field = $this->option['field'];
-        } else {
-            $field = true;
         }
-        $query->field($field, false, $joinTable, $joinAlias, $relation . '__');
+        $query->field(isset($field) ? $field : true, false, $joinTable, $joinAlias, $relation . '__');
     }
 
     /**
@@ -195,7 +194,6 @@ abstract class OneToOne extends Relation
      */
     public function getEagerlyType()
     {
-        $this->removeOption();
         return $this->eagerlyType;
     }
 

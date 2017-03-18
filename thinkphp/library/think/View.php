@@ -25,9 +25,10 @@ class View
     protected $replace = [];
 
     /**
-     * 架构函数
+     * 构造函数
      * @access public
-     * @param array $engine  模板引擎参数
+     *
+*@param array $engine  模板引擎参数
      * @param array $replace  字符串替换参数
      */
     public function __construct($engine = [], $replace = [])
