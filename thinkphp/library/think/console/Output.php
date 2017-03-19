@@ -40,15 +40,15 @@ use think\console\output\question\Confirmation;
  */
 class Output
 {
-    const VERBOSITY_QUIET = 0;
-    const VERBOSITY_NORMAL = 1;
-    const VERBOSITY_VERBOSE = 2;
+    const VERBOSITY_QUIET        = 0;
+    const VERBOSITY_NORMAL       = 1;
+    const VERBOSITY_VERBOSE      = 2;
     const VERBOSITY_VERY_VERBOSE = 3;
-    const VERBOSITY_DEBUG = 4;
+    const VERBOSITY_DEBUG        = 4;
 
     const OUTPUT_NORMAL = 0;
-    const OUTPUT_RAW = 1;
-    const OUTPUT_PLAIN = 2;
+    const OUTPUT_RAW    = 1;
+    const OUTPUT_PLAIN  = 2;
 
     private $verbosity = self::VERBOSITY_NORMAL;
 
@@ -61,7 +61,7 @@ class Output
         'comment',
         'question',
         'highlight',
-        'warning',
+        'warning'
     ];
 
     public function __construct($driver = 'console')
@@ -99,9 +99,8 @@ class Output
      */
     public function choice(Input $input, $question, array $choices, $default = null)
     {
-        if (null !== $default)
-        {
-            $values = array_flip($choices);
+        if (null !== $default) {
+            $values  = array_flip($choices);
             $default = $values[$default];
         }
 
@@ -110,11 +109,10 @@ class Output
 
     protected function askQuestion(Input $input, Question $question)
     {
-        $ask = new Ask($input, $this, $question);
+        $ask    = new Ask($input, $this, $question);
         $answer = $ask->run();
 
-        if ($input->isInteractive())
-        {
+        if ($input->isInteractive()) {
             $this->newLine();
         }
 
@@ -128,7 +126,6 @@ class Output
 
     /**
      * 输出空行
-     *
      * @param int $count
      */
     public function newLine($count = 1)
@@ -138,7 +135,6 @@ class Output
 
     /**
      * 输出信息并换行
-     *
      * @param string $messages
      * @param int    $type
      */
@@ -149,7 +145,6 @@ class Output
 
     /**
      * 输出信息
-     *
      * @param string $messages
      * @param bool   $newline
      * @param int    $type
@@ -169,7 +164,7 @@ class Output
      */
     public function setVerbosity($level)
     {
-        $this->verbosity = (int)$level;
+        $this->verbosity = (int) $level;
     }
 
     /**
@@ -203,7 +198,7 @@ class Output
     public function describe($object, array $options = [])
     {
         $descriptor = new Descriptor();
-        $options = array_merge([
+        $options    = array_merge([
             'raw_text' => false,
         ], $options);
 
@@ -212,18 +207,14 @@ class Output
 
     public function __call($method, $args)
     {
-        if (in_array($method, $this->styles))
-        {
+        if (in_array($method, $this->styles)) {
             array_unshift($args, $method);
-
             return call_user_func_array([$this, 'block'], $args);
         }
 
-        if ($this->handle && method_exists($this->handle, $method))
-        {
+        if ($this->handle && method_exists($this->handle, $method)) {
             return call_user_func_array([$this->handle, $method], $args);
-        } else
-        {
+        } else {
             throw new Exception('method not exists:' . __CLASS__ . '->' . $method);
         }
     }

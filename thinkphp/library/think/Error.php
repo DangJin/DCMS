@@ -32,46 +32,38 @@ class Error
 
     /**
      * Exception Handler
-     *
      * @param  \Exception|\Throwable $e
      */
     public static function appException($e)
     {
-        if (!$e instanceof \Exception)
-        {
+        if (!$e instanceof \Exception) {
             $e = new ThrowableError($e);
         }
 
         self::getExceptionHandler()->report($e);
-        if (IS_CLI)
-        {
+        if (IS_CLI) {
             self::getExceptionHandler()->renderForConsole(new ConsoleOutput, $e);
-        } else
-        {
+        } else {
             self::getExceptionHandler()->render($e)->send();
         }
     }
 
     /**
      * Error Handler
-     *
-     * @param  integer $errno 错误编号
-     * @param  integer $errstr 详细错误信息
+     * @param  integer $errno   错误编号
+     * @param  integer $errstr  详细错误信息
      * @param  string  $errfile 出错的文件
      * @param  integer $errline 出错行号
      * @param array    $errcontext
-     *
      * @throws ErrorException
      */
     public static function appError($errno, $errstr, $errfile = '', $errline = 0, $errcontext = [])
     {
         $exception = new ErrorException($errno, $errstr, $errfile, $errline, $errcontext);
-        if (error_reporting() & $errno)
-        {
+        if (error_reporting() & $errno) {
             // 将错误信息托管至 think\exception\ErrorException
             throw $exception;
-        } else
-        {
+        } else {
             self::getExceptionHandler()->report($exception);
         }
     }
@@ -81,8 +73,7 @@ class Error
      */
     public static function appShutdown()
     {
-        if (!is_null($error = error_get_last()) && self::isFatal($error['type']))
-        {
+        if (!is_null($error = error_get_last()) && self::isFatal($error['type'])) {
             // 将错误信息托管至think\ErrorException
             $exception = new ErrorException($error['type'], $error['message'], $error['file'], $error['line']);
 
@@ -97,7 +88,6 @@ class Error
      * 确定错误类型是否致命
      *
      * @param  int $type
-     *
      * @return bool
      */
     protected static function isFatal($type)
@@ -113,19 +103,15 @@ class Error
     public static function getExceptionHandler()
     {
         static $handle;
-        if (!$handle)
-        {
+        if (!$handle) {
             // 异常处理handle
             $class = Config::get('exception_handle');
-            if ($class && class_exists($class) && is_subclass_of($class, "\\think\\exception\\Handle"))
-            {
+            if ($class && class_exists($class) && is_subclass_of($class, "\\think\\exception\\Handle")) {
                 $handle = new $class;
-            } else
-            {
+            } else {
                 $handle = new Handle;
             }
         }
-
         return $handle;
     }
 }

@@ -32,7 +32,9 @@
     "topthink/think-sae": "^1.0",
     "topthink/think-worker": "^1.0",
     "topthink/think-queue": "^1.0",
-    "topthink/think-testing": "^1.0"
+    "topthink/think-testing": "^1.0",
+    "overtrue/wechat": "^3.1",
+    "phpmailer/phpmailer": "~5.2"
   },
   "extra": {
     "think-path": "thinkphp"

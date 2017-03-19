@@ -38,15 +38,12 @@ abstract class Make extends Command
 
         $pathname = $this->getPathName($classname);
 
-        if (is_file($pathname))
-        {
+        if (is_file($pathname)) {
             $output->writeln('<error>' . $this->type . ' already exists!</error>');
-
             return false;
         }
 
-        if (!is_dir(dirname($pathname)))
-        {
+        if (!is_dir(dirname($pathname))) {
             mkdir(strtolower(dirname($pathname)), 0755, true);
         }
 
@@ -67,7 +64,7 @@ abstract class Make extends Command
         return str_replace(['{%className%}', '{%namespace%}', '{%app_namespace%}'], [
             $class,
             $namespace,
-            Config::get('app_namespace'),
+            Config::get('app_namespace')
         ], $stub);
 
     }
@@ -83,27 +80,21 @@ abstract class Make extends Command
     {
         $appNamespace = Config::get('app_namespace');
 
-        if (strpos($name, $appNamespace . '\\') === 0)
-        {
+        if (strpos($name, $appNamespace . '\\') === 0) {
             return $name;
         }
 
-        if (Config::get('app_multi_module'))
-        {
-            if (strpos($name, '/'))
-            {
+        if (Config::get('app_multi_module')) {
+            if (strpos($name, '/')) {
                 list($module, $name) = explode('/', $name, 2);
-            } else
-            {
+            } else {
                 $module = 'common';
             }
-        } else
-        {
+        } else {
             $module = null;
         }
 
-        if (strpos($name, '/') !== false)
-        {
+        if (strpos($name, '/') !== false) {
             $name = str_replace('/', '\\', $name);
         }
 

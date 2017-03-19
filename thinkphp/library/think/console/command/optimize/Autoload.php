@@ -42,32 +42,28 @@ EOF;
             'think\\'              => LIB_PATH . 'think',
             'behavior\\'           => LIB_PATH . 'behavior',
             'traits\\'             => LIB_PATH . 'traits',
-            ''                     => realpath(rtrim(EXTEND_PATH)),
+            ''                     => realpath(rtrim(EXTEND_PATH))
         ];
 
         krsort($namespacesToScan);
         $classMap = [];
-        foreach ($namespacesToScan as $namespace => $dir)
-        {
+        foreach ($namespacesToScan as $namespace => $dir) {
 
-            if (!is_dir($dir))
-            {
+            if (!is_dir($dir)) {
                 continue;
             }
 
             $namespaceFilter = $namespace === '' ? null : $namespace;
-            $classMap = $this->addClassMapCode($dir, $namespaceFilter, $classMap);
+            $classMap        = $this->addClassMapCode($dir, $namespaceFilter, $classMap);
         }
 
         ksort($classMap);
-        foreach ($classMap as $class => $code)
-        {
+        foreach ($classMap as $class => $code) {
             $classmapFile .= '    ' . var_export($class, true) . ' => ' . $code;
         }
         $classmapFile .= "];\n";
 
-        if (!is_dir(RUNTIME_PATH))
-        {
+        if (!is_dir(RUNTIME_PATH)) {
             @mkdir(RUNTIME_PATH, 0755, true);
         }
 
@@ -78,53 +74,45 @@ EOF;
 
     protected function addClassMapCode($dir, $namespace, $classMap)
     {
-        foreach ($this->createMap($dir, $namespace) as $class => $path)
-        {
+        foreach ($this->createMap($dir, $namespace) as $class => $path) {
 
             $pathCode = $this->getPathCode($path) . ",\n";
 
-            if (!isset($classMap[$class]))
-            {
+            if (!isset($classMap[$class])) {
                 $classMap[$class] = $pathCode;
-            } elseif ($classMap[$class] !== $pathCode && !preg_match('{/(test|fixture|example|stub)s?/}i', strtr($classMap[$class] . ' ' . $path, '\\', '/')))
-            {
+            } elseif ($classMap[$class] !== $pathCode && !preg_match('{/(test|fixture|example|stub)s?/}i', strtr($classMap[$class] . ' ' . $path, '\\', '/'))) {
                 $this->output->writeln(
                     '<warning>Warning: Ambiguous class resolution, "' . $class . '"' .
                     ' was found in both "' . str_replace(["',\n"], [
-                        '',
+                        ''
                     ], $classMap[$class]) . '" and "' . $path . '", the first will be used.</warning>'
                 );
             }
         }
-
         return $classMap;
     }
 
     protected function getPathCode($path)
     {
 
-        $baseDir = '';
-        $appPath = $this->normalizePath(realpath(APP_PATH));
-        $libPath = $this->normalizePath(realpath(LIB_PATH));
+        $baseDir    = '';
+        $appPath    = $this->normalizePath(realpath(APP_PATH));
+        $libPath    = $this->normalizePath(realpath(LIB_PATH));
         $extendPath = $this->normalizePath(realpath(EXTEND_PATH));
-        $path = $this->normalizePath($path);
+        $path       = $this->normalizePath($path);
 
-        if (strpos($path, $libPath . '/') === 0)
-        {
-            $path = substr($path, strlen(LIB_PATH));
+        if (strpos($path, $libPath . '/') === 0) {
+            $path    = substr($path, strlen(LIB_PATH));
             $baseDir = 'LIB_PATH';
-        } elseif (strpos($path, $appPath . '/') === 0)
-        {
-            $path = substr($path, strlen($appPath) + 1);
+        } elseif (strpos($path, $appPath . '/') === 0) {
+            $path    = substr($path, strlen($appPath) + 1);
             $baseDir = 'APP_PATH';
-        } elseif (strpos($path, $extendPath . '/') === 0)
-        {
-            $path = substr($path, strlen($extendPath) + 1);
+        } elseif (strpos($path, $extendPath . '/') === 0) {
+            $path    = substr($path, strlen($extendPath) + 1);
             $baseDir = 'EXTEND_PATH';
         }
 
-        if ($path !== false)
-        {
+        if ($path !== false) {
             $baseDir .= " . ";
         }
 
@@ -133,34 +121,29 @@ EOF;
 
     protected function normalizePath($path)
     {
-        $parts = [];
-        $path = strtr($path, '\\', '/');
-        $prefix = '';
+        $parts    = [];
+        $path     = strtr($path, '\\', '/');
+        $prefix   = '';
         $absolute = false;
 
-        if (preg_match('{^([0-9a-z]+:(?://(?:[a-z]:)?)?)}i', $path, $match))
-        {
+        if (preg_match('{^([0-9a-z]+:(?://(?:[a-z]:)?)?)}i', $path, $match)) {
             $prefix = $match[1];
-            $path = substr($path, strlen($prefix));
+            $path   = substr($path, strlen($prefix));
         }
 
-        if (substr($path, 0, 1) === '/')
-        {
+        if (substr($path, 0, 1) === '/') {
             $absolute = true;
-            $path = substr($path, 1);
+            $path     = substr($path, 1);
         }
 
         $up = false;
-        foreach (explode('/', $path) as $chunk)
-        {
-            if ('..' === $chunk && ($absolute || $up))
-            {
+        foreach (explode('/', $path) as $chunk) {
+            if ('..' === $chunk && ($absolute || $up)) {
                 array_pop($parts);
                 $up = !(empty($parts) || '..' === end($parts));
-            } elseif ('.' !== $chunk && '' !== $chunk)
-            {
+            } elseif ('.' !== $chunk && '' !== $chunk) {
                 $parts[] = $chunk;
-                $up = '..' !== $chunk;
+                $up      = '..' !== $chunk;
             }
         }
 
@@ -169,28 +152,22 @@ EOF;
 
     protected function createMap($path, $namespace = null)
     {
-        if (is_string($path))
-        {
-            if (is_file($path))
-            {
+        if (is_string($path)) {
+            if (is_file($path)) {
                 $path = [new \SplFileInfo($path)];
-            } elseif (is_dir($path))
-            {
+            } elseif (is_dir($path)) {
 
                 $objects = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path), \RecursiveIteratorIterator::SELF_FIRST);
 
                 $path = [];
 
                 /** @var \SplFileInfo $object */
-                foreach ($objects as $object)
-                {
-                    if ($object->isFile() && $object->getExtension() == 'php')
-                    {
+                foreach ($objects as $object) {
+                    if ($object->isFile() && $object->getExtension() == 'php') {
                         $path[] = $object;
                     }
                 }
-            } else
-            {
+            } else {
                 throw new \RuntimeException(
                     'Could not scan for classes inside "' . $path .
                     '" which does not appear to be a file nor a folder'
@@ -201,29 +178,23 @@ EOF;
         $map = [];
 
         /** @var \SplFileInfo $file */
-        foreach ($path as $file)
-        {
+        foreach ($path as $file) {
             $filePath = $file->getRealPath();
 
-            if (pathinfo($filePath, PATHINFO_EXTENSION) != 'php')
-            {
+            if (pathinfo($filePath, PATHINFO_EXTENSION) != 'php') {
                 continue;
             }
 
             $classes = $this->findClasses($filePath);
 
-            foreach ($classes as $class)
-            {
-                if (null !== $namespace && 0 !== strpos($class, $namespace))
-                {
+            foreach ($classes as $class) {
+                if (null !== $namespace && 0 !== strpos($class, $namespace)) {
                     continue;
                 }
 
-                if (!isset($map[$class]))
-                {
+                if (!isset($map[$class])) {
                     $map[$class] = $filePath;
-                } elseif ($map[$class] !== $filePath && !preg_match('{/(test|fixture|example|stub)s?/}i', strtr($map[$class] . ' ' . $filePath, '\\', '/')))
-                {
+                } elseif ($map[$class] !== $filePath && !preg_match('{/(test|fixture|example|stub)s?/}i', strtr($map[$class] . ' ' . $filePath, '\\', '/'))) {
                     $this->output->writeln(
                         '<warning>Warning: Ambiguous class resolution, "' . $class . '"' .
                         ' was found in both "' . $map[$class] . '" and "' . $filePath . '", the first will be used.</warning>'
@@ -240,31 +211,24 @@ EOF;
         $extraTypes = '|trait';
 
         $contents = @php_strip_whitespace($path);
-        if (!$contents)
-        {
-            if (!file_exists($path))
-            {
+        if (!$contents) {
+            if (!file_exists($path)) {
                 $message = 'File at "%s" does not exist, check your classmap definitions';
-            } elseif (!is_readable($path))
-            {
+            } elseif (!is_readable($path)) {
                 $message = 'File at "%s" is not readable, check its permissions';
-            } elseif ('' === trim(file_get_contents($path)))
-            {
+            } elseif ('' === trim(file_get_contents($path))) {
                 return [];
-            } else
-            {
+            } else {
                 $message = 'File at "%s" could not be parsed as PHP, it may be binary or corrupted';
             }
             $error = error_get_last();
-            if (isset($error['message']))
-            {
+            if (isset($error['message'])) {
                 $message .= PHP_EOL . 'The following message may be helpful:' . PHP_EOL . $error['message'];
             }
             throw new \RuntimeException(sprintf($message, $path));
         }
 
-        if (!preg_match('{\b(?:class|interface' . $extraTypes . ')\s}i', $contents))
-        {
+        if (!preg_match('{\b(?:class|interface' . $extraTypes . ')\s}i', $contents)) {
             return [];
         }
 
@@ -273,11 +237,9 @@ EOF;
         // strip strings
         $contents = preg_replace('{"[^"\\\\]*+(\\\\.[^"\\\\]*+)*+"|\'[^\'\\\\]*+(\\\\.[^\'\\\\]*+)*+\'}s', 'null', $contents);
         // strip leading non-php code if needed
-        if (substr($contents, 0, 2) !== '<?')
-        {
+        if (substr($contents, 0, 2) !== '<?') {
             $contents = preg_replace('{^.+?<\?}s', '<?', $contents, 1, $replacements);
-            if ($replacements === 0)
-            {
+            if ($replacements === 0) {
                 return [];
             }
         }
@@ -285,8 +247,7 @@ EOF;
         $contents = preg_replace('{\?>.+<\?}s', '?><?', $contents);
         // strip trailing non-php code if needed
         $pos = strrpos($contents, '?>');
-        if (false !== $pos && false === strpos(substr($contents, $pos), '<?'))
-        {
+        if (false !== $pos && false === strpos(substr($contents, $pos), '<?')) {
             $contents = substr($contents, 0, $pos);
         }
 
@@ -297,22 +258,17 @@ EOF;
             )
         }ix', $contents, $matches);
 
-        $classes = [];
+        $classes   = [];
         $namespace = '';
 
-        for ($i = 0, $len = count($matches['type']); $i < $len; $i++)
-        {
-            if (!empty($matches['ns'][$i]))
-            {
+        for ($i = 0, $len = count($matches['type']); $i < $len; $i++) {
+            if (!empty($matches['ns'][$i])) {
                 $namespace = str_replace([' ', "\t", "\r", "\n"], '', $matches['nsname'][$i]) . '\\';
-            } else
-            {
+            } else {
                 $name = $matches['name'][$i];
-                if ($name[0] === ':')
-                {
+                if ($name[0] === ':') {
                     $name = 'xhp' . substr(str_replace(['-', ':'], ['_', '__'], $name), 1);
-                } elseif ($matches['type'][$i] === 'enum')
-                {
+                } elseif ($matches['type'][$i] === 'enum') {
                     $name = rtrim($name, ':');
                 }
                 $classes[] = ltrim($namespace . $name, '\\');

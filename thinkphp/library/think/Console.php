@@ -30,7 +30,7 @@ class Console
     private $wantHelps = false;
 
     private $catchExceptions = true;
-    private $autoExit = true;
+    private $autoExit        = true;
     private $definition;
     private $defaultCommand;
 
@@ -49,14 +49,13 @@ class Console
 
     public function __construct($name = 'UNKNOWN', $version = 'UNKNOWN')
     {
-        $this->name = $name;
+        $this->name    = $name;
         $this->version = $version;
 
         $this->defaultCommand = 'list';
-        $this->definition = $this->getDefaultInputDefinition();
+        $this->definition     = $this->getDefaultInputDefinition();
 
-        foreach ($this->getDefaultCommands() as $command)
-        {
+        foreach ($this->getDefaultCommands() as $command) {
             $this->add($command);
         }
     }
@@ -64,20 +63,15 @@ class Console
     public static function init($run = true)
     {
         static $console;
-        if (!$console)
-        {
+        if (!$console) {
             // 实例化console
             $console = new self('Think Console', '0.1');
             // 读取指令集
-            if (is_file(CONF_PATH . 'command' . EXT))
-            {
+            if (is_file(CONF_PATH . 'command' . EXT)) {
                 $commands = include CONF_PATH . 'command' . EXT;
-                if (is_array($commands))
-                {
-                    foreach ($commands as $command)
-                    {
-                        if (class_exists($command) && is_subclass_of($command, "\\think\\console\\Command"))
-                        {
+                if (is_array($commands)) {
+                    foreach ($commands as $command) {
+                        if (class_exists($command) && is_subclass_of($command, "\\think\\console\\Command")) {
                             // 注册指令
                             $console->add(new $command());
                         }
@@ -85,12 +79,10 @@ class Console
                 }
             }
         }
-        if ($run)
-        {
+        if ($run) {
             // 运行
             return $console->run();
-        } else
-        {
+        } else {
             return $console;
         }
     }
@@ -99,7 +91,6 @@ class Console
      * @param        $command
      * @param array  $parameters
      * @param string $driver
-     *
      * @return Output|Buffer
      */
     public static function call($command, array $parameters = [], $driver = 'buffer')
@@ -108,7 +99,7 @@ class Console
 
         array_unshift($parameters, $command);
 
-        $input = new Input($parameters);
+        $input  = new Input($parameters);
         $output = new Output($driver);
 
         $console->setCatchExceptions(false);
@@ -125,41 +116,33 @@ class Console
      */
     public function run()
     {
-        $input = new Input();
+        $input  = new Input();
         $output = new Output();
 
         $this->configureIO($input, $output);
 
-        try
-        {
+        try {
             $exitCode = $this->doRun($input, $output);
-        } catch (\Exception $e)
-        {
-            if (!$this->catchExceptions)
-            {
+        } catch (\Exception $e) {
+            if (!$this->catchExceptions) {
                 throw $e;
             }
 
             $output->renderException($e);
 
             $exitCode = $e->getCode();
-            if (is_numeric($exitCode))
-            {
-                $exitCode = (int)$exitCode;
-                if (0 === $exitCode)
-                {
+            if (is_numeric($exitCode)) {
+                $exitCode = (int) $exitCode;
+                if (0 === $exitCode) {
                     $exitCode = 1;
                 }
-            } else
-            {
+            } else {
                 $exitCode = 1;
             }
         }
 
-        if ($this->autoExit)
-        {
-            if ($exitCode > 255)
-            {
+        if ($this->autoExit) {
+            if ($exitCode > 255) {
                 $exitCode = 255;
             }
 
@@ -171,16 +154,13 @@ class Console
 
     /**
      * 执行指令
-     *
      * @param Input  $input
      * @param Output $output
-     *
      * @return int
      */
     public function doRun(Input $input, Output $output)
     {
-        if (true === $input->hasParameterOption(['--version', '-V']))
-        {
+        if (true === $input->hasParameterOption(['--version', '-V'])) {
             $output->writeln($this->getLongVersion());
 
             return 0;
@@ -188,21 +168,17 @@ class Console
 
         $name = $this->getCommandName($input);
 
-        if (true === $input->hasParameterOption(['--help', '-h']))
-        {
-            if (!$name)
-            {
-                $name = 'help';
+        if (true === $input->hasParameterOption(['--help', '-h'])) {
+            if (!$name) {
+                $name  = 'help';
                 $input = new Input(['help']);
-            } else
-            {
+            } else {
                 $this->wantHelps = true;
             }
         }
 
-        if (!$name)
-        {
-            $name = $this->defaultCommand;
+        if (!$name) {
+            $name  = $this->defaultCommand;
             $input = new Input([$this->defaultCommand]);
         }
 
@@ -215,7 +191,6 @@ class Console
 
     /**
      * 设置输入参数定义
-     *
      * @param InputDefinition $definition
      */
     public function setDefinition(InputDefinition $definition)
@@ -243,26 +218,22 @@ class Console
 
     /**
      * 是否捕获异常
-     *
      * @param bool $boolean
-     *
      * @api
      */
     public function setCatchExceptions($boolean)
     {
-        $this->catchExceptions = (bool)$boolean;
+        $this->catchExceptions = (bool) $boolean;
     }
 
     /**
      * 是否自动退出
-     *
      * @param bool $boolean
-     *
      * @api
      */
     public function setAutoExit($boolean)
     {
-        $this->autoExit = (bool)$boolean;
+        $this->autoExit = (bool) $boolean;
     }
 
     /**
@@ -276,7 +247,6 @@ class Console
 
     /**
      * 设置名称
-     *
      * @param string $name
      */
     public function setName($name)
@@ -296,7 +266,6 @@ class Console
 
     /**
      * 设置版本
-     *
      * @param string $version
      */
     public function setVersion($version)
@@ -310,8 +279,7 @@ class Console
      */
     public function getLongVersion()
     {
-        if ('UNKNOWN' !== $this->getName() && 'UNKNOWN' !== $this->getVersion())
-        {
+        if ('UNKNOWN' !== $this->getName() && 'UNKNOWN' !== $this->getVersion()) {
             return sprintf('<info>%s</info> version <comment>%s</comment>', $this->getName(), $this->getVersion());
         }
 
@@ -320,9 +288,7 @@ class Console
 
     /**
      * 注册一个指令
-     *
      * @param string $name
-     *
      * @return Command
      */
     public function register($name)
@@ -332,44 +298,36 @@ class Console
 
     /**
      * 添加指令
-     *
      * @param Command[] $commands
      */
     public function addCommands(array $commands)
     {
-        foreach ($commands as $command)
-        {
+        foreach ($commands as $command) {
             $this->add($command);
         }
     }
 
     /**
      * 添加一个指令
-     *
      * @param Command $command
-     *
      * @return Command
      */
     public function add(Command $command)
     {
         $command->setConsole($this);
 
-        if (!$command->isEnabled())
-        {
+        if (!$command->isEnabled()) {
             $command->setConsole(null);
-
             return;
         }
 
-        if (null === $command->getDefinition())
-        {
+        if (null === $command->getDefinition()) {
             throw new \LogicException(sprintf('Command class "%s" is not correctly initialized. You probably forgot to call the parent constructor.', get_class($command)));
         }
 
         $this->commands[$command->getName()] = $command;
 
-        foreach ($command->getAliases() as $alias)
-        {
+        foreach ($command->getAliases() as $alias) {
             $this->commands[$alias] = $command;
         }
 
@@ -378,23 +336,19 @@ class Console
 
     /**
      * 获取指令
-     *
      * @param string $name 指令名称
-     *
      * @return Command
      * @throws \InvalidArgumentException
      */
     public function get($name)
     {
-        if (!isset($this->commands[$name]))
-        {
+        if (!isset($this->commands[$name])) {
             throw new \InvalidArgumentException(sprintf('The command "%s" does not exist.', $name));
         }
 
         $command = $this->commands[$name];
 
-        if ($this->wantHelps)
-        {
+        if ($this->wantHelps) {
             $this->wantHelps = false;
 
             /** @var HelpCommand $helpCommand */
@@ -409,9 +363,7 @@ class Console
 
     /**
      * 某个指令是否存在
-     *
      * @param string $name 指令名称
-     *
      * @return bool
      */
     public function has($name)
@@ -426,12 +378,10 @@ class Console
     public function getNamespaces()
     {
         $namespaces = [];
-        foreach ($this->commands as $command)
-        {
+        foreach ($this->commands as $command) {
             $namespaces = array_merge($namespaces, $this->extractAllNamespaces($command->getName()));
 
-            foreach ($command->getAliases() as $alias)
-            {
+            foreach ($command->getAliases() as $alias) {
                 $namespaces = array_merge($namespaces, $this->extractAllNamespaces($alias));
             }
         }
@@ -441,32 +391,25 @@ class Console
 
     /**
      * 查找注册命名空间中的名称或缩写。
-     *
      * @param string $namespace
-     *
      * @return string
      * @throws \InvalidArgumentException
      */
     public function findNamespace($namespace)
     {
         $allNamespaces = $this->getNamespaces();
-        $expr = preg_replace_callback('{([^:]+|)}', function ($matches)
-        {
+        $expr          = preg_replace_callback('{([^:]+|)}', function ($matches) {
             return preg_quote($matches[1]) . '[^:]*';
         }, $namespace);
         $namespaces = preg_grep('{^' . $expr . '}', $allNamespaces);
 
-        if (empty($namespaces))
-        {
+        if (empty($namespaces)) {
             $message = sprintf('There are no commands defined in the "%s" namespace.', $namespace);
 
-            if ($alternatives = $this->findAlternatives($namespace, $allNamespaces))
-            {
-                if (1 == count($alternatives))
-                {
+            if ($alternatives = $this->findAlternatives($namespace, $allNamespaces)) {
+                if (1 == count($alternatives)) {
                     $message .= "\n\nDid you mean this?\n    ";
-                } else
-                {
+                } else {
                     $message .= "\n\nDid you mean one of these?\n    ";
                 }
 
@@ -477,8 +420,7 @@ class Console
         }
 
         $exact = in_array($namespace, $namespaces, true);
-        if (count($namespaces) > 1 && !$exact)
-        {
+        if (count($namespaces) > 1 && !$exact) {
             throw new \InvalidArgumentException(sprintf('The namespace "%s" is ambiguous (%s).', $namespace, $this->getAbbreviationSuggestions(array_values($namespaces))));
         }
 
@@ -487,37 +429,29 @@ class Console
 
     /**
      * 查找指令
-     *
      * @param string $name 名称或者别名
-     *
      * @return Command
      * @throws \InvalidArgumentException
      */
     public function find($name)
     {
         $allCommands = array_keys($this->commands);
-        $expr = preg_replace_callback('{([^:]+|)}', function ($matches)
-        {
+        $expr        = preg_replace_callback('{([^:]+|)}', function ($matches) {
             return preg_quote($matches[1]) . '[^:]*';
         }, $name);
         $commands = preg_grep('{^' . $expr . '}', $allCommands);
 
-        if (empty($commands) || count(preg_grep('{^' . $expr . '$}', $commands)) < 1)
-        {
-            if (false !== $pos = strrpos($name, ':'))
-            {
+        if (empty($commands) || count(preg_grep('{^' . $expr . '$}', $commands)) < 1) {
+            if (false !== $pos = strrpos($name, ':')) {
                 $this->findNamespace(substr($name, 0, $pos));
             }
 
             $message = sprintf('Command "%s" is not defined.', $name);
 
-            if ($alternatives = $this->findAlternatives($name, $allCommands))
-            {
-                if (1 == count($alternatives))
-                {
+            if ($alternatives = $this->findAlternatives($name, $allCommands)) {
+                if (1 == count($alternatives)) {
                     $message .= "\n\nDid you mean this?\n    ";
-                } else
-                {
+                } else {
                     $message .= "\n\nDid you mean one of these?\n    ";
                 }
                 $message .= implode("\n    ", $alternatives);
@@ -526,11 +460,9 @@ class Console
             throw new \InvalidArgumentException($message);
         }
 
-        if (count($commands) > 1)
-        {
+        if (count($commands) > 1) {
             $commandList = $this->commands;
-            $commands = array_filter($commands, function ($nameOrAlias) use ($commandList, $commands)
-            {
+            $commands    = array_filter($commands, function ($nameOrAlias) use ($commandList, $commands) {
                 $commandName = $commandList[$nameOrAlias]->getName();
 
                 return $commandName === $nameOrAlias || !in_array($commandName, $commands);
@@ -538,8 +470,7 @@ class Console
         }
 
         $exact = in_array($name, $commands, true);
-        if (count($commands) > 1 && !$exact)
-        {
+        if (count($commands) > 1 && !$exact) {
             $suggestions = $this->getAbbreviationSuggestions(array_values($commands));
 
             throw new \InvalidArgumentException(sprintf('Command "%s" is ambiguous (%s).', $name, $suggestions));
@@ -550,24 +481,19 @@ class Console
 
     /**
      * 获取所有的指令
-     *
      * @param string $namespace 命名空间
-     *
      * @return Command[]
      * @api
      */
     public function all($namespace = null)
     {
-        if (null === $namespace)
-        {
+        if (null === $namespace) {
             return $this->commands;
         }
 
         $commands = [];
-        foreach ($this->commands as $name => $command)
-        {
-            if ($this->extractNamespace($name, substr_count($namespace, ':') + 1) === $namespace)
-            {
+        foreach ($this->commands as $name => $command) {
+            if ($this->extractNamespace($name, substr_count($namespace, ':') + 1) === $namespace) {
                 $commands[$name] = $command;
             }
         }
@@ -577,19 +503,15 @@ class Console
 
     /**
      * 获取可能的指令名
-     *
      * @param array $names
-     *
      * @return array
      */
     public static function getAbbreviations($names)
     {
         $abbrevs = [];
-        foreach ($names as $name)
-        {
-            for ($len = strlen($name); $len > 0; --$len)
-            {
-                $abbrev = substr($name, 0, $len);
+        foreach ($names as $name) {
+            for ($len = strlen($name); $len > 0; --$len) {
+                $abbrev             = substr($name, 0, $len);
                 $abbrevs[$abbrev][] = $name;
             }
         }
@@ -599,38 +521,29 @@ class Console
 
     /**
      * 配置基于用户的参数和选项的输入和输出实例。
-     *
-     * @param Input  $input 输入实例
+     * @param Input  $input  输入实例
      * @param Output $output 输出实例
      */
     protected function configureIO(Input $input, Output $output)
     {
-        if (true === $input->hasParameterOption(['--ansi']))
-        {
+        if (true === $input->hasParameterOption(['--ansi'])) {
             $output->setDecorated(true);
-        } elseif (true === $input->hasParameterOption(['--no-ansi']))
-        {
+        } elseif (true === $input->hasParameterOption(['--no-ansi'])) {
             $output->setDecorated(false);
         }
 
-        if (true === $input->hasParameterOption(['--no-interaction', '-n']))
-        {
+        if (true === $input->hasParameterOption(['--no-interaction', '-n'])) {
             $input->setInteractive(false);
         }
 
-        if (true === $input->hasParameterOption(['--quiet', '-q']))
-        {
+        if (true === $input->hasParameterOption(['--quiet', '-q'])) {
             $output->setVerbosity(Output::VERBOSITY_QUIET);
-        } else
-        {
-            if ($input->hasParameterOption('-vvv') || $input->hasParameterOption('--verbose=3') || $input->getParameterOption('--verbose') === 3)
-            {
+        } else {
+            if ($input->hasParameterOption('-vvv') || $input->hasParameterOption('--verbose=3') || $input->getParameterOption('--verbose') === 3) {
                 $output->setVerbosity(Output::VERBOSITY_DEBUG);
-            } elseif ($input->hasParameterOption('-vv') || $input->hasParameterOption('--verbose=2') || $input->getParameterOption('--verbose') === 2)
-            {
+            } elseif ($input->hasParameterOption('-vv') || $input->hasParameterOption('--verbose=2') || $input->getParameterOption('--verbose') === 2) {
                 $output->setVerbosity(Output::VERBOSITY_VERY_VERBOSE);
-            } elseif ($input->hasParameterOption('-v') || $input->hasParameterOption('--verbose=1') || $input->hasParameterOption('--verbose') || $input->getParameterOption('--verbose'))
-            {
+            } elseif ($input->hasParameterOption('-v') || $input->hasParameterOption('--verbose=1') || $input->hasParameterOption('--verbose') || $input->getParameterOption('--verbose')) {
                 $output->setVerbosity(Output::VERBOSITY_VERBOSE);
             }
         }
@@ -638,11 +551,9 @@ class Console
 
     /**
      * 执行指令
-     *
      * @param Command $command 指令实例
-     * @param Input   $input 输入实例
-     * @param Output  $output 输出实例
-     *
+     * @param Input   $input   输入实例
+     * @param Output  $output  输出实例
      * @return int
      * @throws \Exception
      */
@@ -653,9 +564,7 @@ class Console
 
     /**
      * 获取指令的基础名称
-     *
      * @param Input $input
-     *
      * @return string
      */
     protected function getCommandName(Input $input)
@@ -689,10 +598,8 @@ class Console
     {
         $defaultCommands = [];
 
-        foreach (self::$defaultCommands as $classname)
-        {
-            if (class_exists($classname) && is_subclass_of($classname, "think\\console\\Command"))
-            {
+        foreach (self::$defaultCommands as $classname) {
+            if (class_exists($classname) && is_subclass_of($classname, "think\\console\\Command")) {
                 $defaultCommands[] = new $classname();
             }
         }
@@ -707,9 +614,7 @@ class Console
 
     /**
      * 获取可能的建议
-     *
      * @param array $abbrevs
-     *
      * @return string
      */
     private function getAbbreviationSuggestions($abbrevs)
@@ -719,10 +624,8 @@ class Console
 
     /**
      * 返回命名空间部分
-     *
-     * @param string $name 指令
+     * @param string $name  指令
      * @param string $limit 部分的命名空间的最大数量
-     *
      * @return string
      */
     public function extractNamespace($name, $limit = null)
@@ -735,59 +638,47 @@ class Console
 
     /**
      * 查找可替代的建议
-     *
      * @param string             $name
      * @param array|\Traversable $collection
-     *
      * @return array
      */
     private function findAlternatives($name, $collection)
     {
-        $threshold = 1e3;
+        $threshold    = 1e3;
         $alternatives = [];
 
         $collectionParts = [];
-        foreach ($collection as $item)
-        {
+        foreach ($collection as $item) {
             $collectionParts[$item] = explode(':', $item);
         }
 
-        foreach (explode(':', $name) as $i => $subname)
-        {
-            foreach ($collectionParts as $collectionName => $parts)
-            {
+        foreach (explode(':', $name) as $i => $subname) {
+            foreach ($collectionParts as $collectionName => $parts) {
                 $exists = isset($alternatives[$collectionName]);
-                if (!isset($parts[$i]) && $exists)
-                {
+                if (!isset($parts[$i]) && $exists) {
                     $alternatives[$collectionName] += $threshold;
                     continue;
-                } elseif (!isset($parts[$i]))
-                {
+                } elseif (!isset($parts[$i])) {
                     continue;
                 }
 
                 $lev = levenshtein($subname, $parts[$i]);
-                if ($lev <= strlen($subname) / 3 || '' !== $subname && false !== strpos($parts[$i], $subname))
-                {
+                if ($lev <= strlen($subname) / 3 || '' !== $subname && false !== strpos($parts[$i], $subname)) {
                     $alternatives[$collectionName] = $exists ? $alternatives[$collectionName] + $lev : $lev;
-                } elseif ($exists)
-                {
+                } elseif ($exists) {
                     $alternatives[$collectionName] += $threshold;
                 }
             }
         }
 
-        foreach ($collection as $item)
-        {
+        foreach ($collection as $item) {
             $lev = levenshtein($name, $item);
-            if ($lev <= strlen($name) / 3 || false !== strpos($item, $name))
-            {
+            if ($lev <= strlen($name) / 3 || false !== strpos($item, $name)) {
                 $alternatives[$item] = isset($alternatives[$item]) ? $alternatives[$item] - $lev : $lev;
             }
         }
 
-        $alternatives = array_filter($alternatives, function ($lev) use ($threshold)
-        {
+        $alternatives = array_filter($alternatives, function ($lev) use ($threshold) {
             return $lev < 2 * $threshold;
         });
         asort($alternatives);
@@ -797,7 +688,6 @@ class Console
 
     /**
      * 设置默认的指令
-     *
      * @param string $commandName The Command name
      */
     public function setDefaultCommand($commandName)
@@ -807,23 +697,18 @@ class Console
 
     /**
      * 返回所有的命名空间
-     *
      * @param string $name
-     *
      * @return array
      */
     private function extractAllNamespaces($name)
     {
-        $parts = explode(':', $name, -1);
+        $parts      = explode(':', $name, -1);
         $namespaces = [];
 
-        foreach ($parts as $part)
-        {
-            if (count($namespaces))
-            {
+        foreach ($parts as $part) {
+            if (count($namespaces)) {
                 $namespaces[] = end($namespaces) . ':' . $part;
-            } else
-            {
+            } else {
                 $namespaces[] = $part;
             }
         }

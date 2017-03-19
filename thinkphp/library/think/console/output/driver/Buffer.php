@@ -27,22 +27,19 @@ class Buffer
 
     public function fetch()
     {
-        $content = $this->buffer;
+        $content      = $this->buffer;
         $this->buffer = '';
-
         return $content;
     }
 
     public function write($messages, $newline = false, $options = Output::OUTPUT_NORMAL)
     {
-        $messages = (array)$messages;
+        $messages = (array) $messages;
 
-        foreach ($messages as $message)
-        {
+        foreach ($messages as $message) {
             $this->buffer .= $message;
         }
-        if ($newline)
-        {
+        if ($newline) {
             $this->buffer .= "\n";
         }
     }

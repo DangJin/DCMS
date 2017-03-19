@@ -48,48 +48,39 @@ class Style
 
     /**
      * 初始化输出的样式
-     *
      * @param string|null $foreground 字体颜色
      * @param string|null $background 背景色
-     * @param array       $options 格式
-     *
+     * @param array       $options    格式
      * @api
      */
     public function __construct($foreground = null, $background = null, array $options = [])
     {
-        if (null !== $foreground)
-        {
+        if (null !== $foreground) {
             $this->setForeground($foreground);
         }
-        if (null !== $background)
-        {
+        if (null !== $background) {
             $this->setBackground($background);
         }
-        if (count($options))
-        {
+        if (count($options)) {
             $this->setOptions($options);
         }
     }
 
     /**
      * 设置字体颜色
-     *
      * @param string|null $color 颜色名
-     *
      * @throws \InvalidArgumentException
      * @api
      */
     public function setForeground($color = null)
     {
-        if (null === $color)
-        {
+        if (null === $color) {
             $this->foreground = null;
 
             return;
         }
 
-        if (!isset(static::$availableForegroundColors[$color]))
-        {
+        if (!isset(static::$availableForegroundColors[$color])) {
             throw new \InvalidArgumentException(sprintf('Invalid foreground color specified: "%s". Expected one of (%s)', $color, implode(', ', array_keys(static::$availableForegroundColors))));
         }
 
@@ -98,23 +89,19 @@ class Style
 
     /**
      * 设置背景色
-     *
      * @param string|null $color 颜色名
-     *
      * @throws \InvalidArgumentException
      * @api
      */
     public function setBackground($color = null)
     {
-        if (null === $color)
-        {
+        if (null === $color) {
             $this->background = null;
 
             return;
         }
 
-        if (!isset(static::$availableBackgroundColors[$color]))
-        {
+        if (!isset(static::$availableBackgroundColors[$color])) {
             throw new \InvalidArgumentException(sprintf('Invalid background color specified: "%s". Expected one of (%s)', $color, implode(', ', array_keys(static::$availableBackgroundColors))));
         }
 
@@ -123,94 +110,77 @@ class Style
 
     /**
      * 设置字体格式
-     *
      * @param string $option 格式名
-     *
      * @throws \InvalidArgumentException When the option name isn't defined
      * @api
      */
     public function setOption($option)
     {
-        if (!isset(static::$availableOptions[$option]))
-        {
+        if (!isset(static::$availableOptions[$option])) {
             throw new \InvalidArgumentException(sprintf('Invalid option specified: "%s". Expected one of (%s)', $option, implode(', ', array_keys(static::$availableOptions))));
         }
 
-        if (!in_array(static::$availableOptions[$option], $this->options))
-        {
+        if (!in_array(static::$availableOptions[$option], $this->options)) {
             $this->options[] = static::$availableOptions[$option];
         }
     }
 
     /**
      * 重置字体格式
-     *
      * @param string $option 格式名
-     *
      * @throws \InvalidArgumentException
      */
     public function unsetOption($option)
     {
-        if (!isset(static::$availableOptions[$option]))
-        {
+        if (!isset(static::$availableOptions[$option])) {
             throw new \InvalidArgumentException(sprintf('Invalid option specified: "%s". Expected one of (%s)', $option, implode(', ', array_keys(static::$availableOptions))));
         }
 
         $pos = array_search(static::$availableOptions[$option], $this->options);
-        if (false !== $pos)
-        {
+        if (false !== $pos) {
             unset($this->options[$pos]);
         }
     }
 
     /**
      * 批量设置字体格式
-     *
      * @param array $options
      */
     public function setOptions(array $options)
     {
         $this->options = [];
 
-        foreach ($options as $option)
-        {
+        foreach ($options as $option) {
             $this->setOption($option);
         }
     }
 
     /**
      * 应用样式到文字
-     *
      * @param string $text 文字
-     *
      * @return string
      */
     public function apply($text)
     {
-        $setCodes = [];
+        $setCodes   = [];
         $unsetCodes = [];
 
-        if (null !== $this->foreground)
-        {
-            $setCodes[] = $this->foreground['set'];
+        if (null !== $this->foreground) {
+            $setCodes[]   = $this->foreground['set'];
             $unsetCodes[] = $this->foreground['unset'];
         }
-        if (null !== $this->background)
-        {
-            $setCodes[] = $this->background['set'];
+        if (null !== $this->background) {
+            $setCodes[]   = $this->background['set'];
             $unsetCodes[] = $this->background['unset'];
         }
-        if (count($this->options))
-        {
-            foreach ($this->options as $option)
-            {
-                $setCodes[] = $option['set'];
+        if (count($this->options)) {
+            foreach ($this->options as $option) {
+                $setCodes[]   = $option['set'];
                 $unsetCodes[] = $option['unset'];
             }
         }
 
-        if (0 === count($setCodes))
-        {
+        if (0 === count($setCodes)) {
             return $text;
         }
 

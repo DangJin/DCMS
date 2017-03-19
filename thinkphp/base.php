@@ -9,7 +9,7 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-define('THINK_VERSION', '5.0.5');
+define('THINK_VERSION', '5.0.7');
 define('THINK_START_TIME', microtime(true));
 define('THINK_START_MEM', memory_get_usage());
 define('EXT', '.php');
@@ -38,21 +38,16 @@ define('IS_WIN', strpos(PHP_OS, 'WIN') !== false);
 require CORE_PATH . 'Loader.php';
 
 // 加载环境变量配置文件
-if (is_file(ROOT_PATH . '.env'))
-{
+if (is_file(ROOT_PATH . '.env')) {
     $env = parse_ini_file(ROOT_PATH . '.env', true);
-    foreach ($env as $key => $val)
-    {
+    foreach ($env as $key => $val) {
         $name = ENV_PREFIX . strtoupper($key);
-        if (is_array($val))
-        {
-            foreach ($val as $k => $v)
-            {
+        if (is_array($val)) {
+            foreach ($val as $k => $v) {
                 $item = $name . '_' . strtoupper($k);
                 putenv("$item=$v");
             }
-        } else
-        {
+        } else {
             putenv("$name=$val");
         }
     }

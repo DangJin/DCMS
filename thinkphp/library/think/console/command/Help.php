@@ -44,7 +44,6 @@ EOF
 
     /**
      * Sets the command.
-     *
      * @param Command $command The command to set
      */
     public function setCommand(Command $command)
@@ -57,8 +56,7 @@ EOF
      */
     protected function execute(Input $input, Output $output)
     {
-        if (null === $this->command)
-        {
+        if (null === $this->command) {
             $this->command = $this->getConsole()->find($input->getArgument('command_name'));
         }
 

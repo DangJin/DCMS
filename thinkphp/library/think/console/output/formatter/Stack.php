@@ -26,7 +26,6 @@ class Stack
 
     /**
      * 构造方法
-     *
      * @param Style|null $emptyStyle
      */
     public function __construct(Style $emptyStyle = null)
@@ -45,7 +44,6 @@ class Stack
 
     /**
      * 推一个样式进入堆栈
-     *
      * @param Style $style
      */
     public function push(Style $style)
@@ -55,21 +53,17 @@ class Stack
 
     /**
      * 从堆栈中弹出一个样式
-     *
      * @param Style|null $style
-     *
      * @return Style
      * @throws \InvalidArgumentException
      */
     public function pop(Style $style = null)
     {
-        if (empty($this->styles))
-        {
+        if (empty($this->styles)) {
             return $this->emptyStyle;
         }
 
-        if (null === $style)
-        {
+        if (null === $style) {
             return array_pop($this->styles);
         }
 
@@ -77,10 +71,8 @@ class Stack
          * @var int   $index
          * @var Style $stackedStyle
          */
-        foreach (array_reverse($this->styles, true) as $index => $stackedStyle)
-        {
-            if ($style->apply('') === $stackedStyle->apply(''))
-            {
+        foreach (array_reverse($this->styles, true) as $index => $stackedStyle) {
+            if ($style->apply('') === $stackedStyle->apply('')) {
                 $this->styles = array_slice($this->styles, 0, $index);
 
                 return $stackedStyle;
@@ -96,8 +88,7 @@ class Stack
      */
     public function getCurrent()
     {
-        if (empty($this->styles))
-        {
+        if (empty($this->styles)) {
             return $this->emptyStyle;
         }
 
@@ -106,7 +97,6 @@ class Stack
 
     /**
      * @param Style $emptyStyle
-     *
      * @return Stack
      */
     public function setEmptyStyle(Style $emptyStyle)

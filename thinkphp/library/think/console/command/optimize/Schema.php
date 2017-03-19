@@ -33,58 +33,45 @@ class Schema extends Command
 
     protected function execute(Input $input, Output $output)
     {
-        if (!is_dir(RUNTIME_PATH . 'schema'))
-        {
+        if (!is_dir(RUNTIME_PATH . 'schema')) {
             @mkdir(RUNTIME_PATH . 'schema', 0755, true);
         }
-        if ($input->hasOption('module'))
-        {
+        if ($input->hasOption('module')) {
             $module = $input->getOption('module');
             // 读取模型
             $list = scandir(APP_PATH . $module . DS . 'model');
-            $app = App::$namespace;
-            foreach ($list as $file)
-            {
-                if ('.' == $file || '..' == $file)
-                {
+            $app  = App::$namespace;
+            foreach ($list as $file) {
+                if ('.' == $file || '..' == $file) {
                     continue;
                 }
                 $class = '\\' . $app . '\\' . $module . '\\model\\' . pathinfo($file, PATHINFO_FILENAME);
                 $this->buildModelSchema($class);
             }
             $output->writeln('<info>Succeed!</info>');
-
             return;
-        } elseif ($input->hasOption('table'))
-        {
+        } elseif ($input->hasOption('table')) {
             $table = $input->getOption('table');
-            if (!strpos($table, '.'))
-            {
+            if (!strpos($table, '.')) {
                 $dbName = Db::getConfig('database');
             }
             $tables[] = $table;
-        } elseif ($input->hasOption('db'))
-        {
+        } elseif ($input->hasOption('db')) {
             $dbName = $input->getOption('db');
             $tables = Db::getTables($dbName);
-        } elseif (!\think\Config::get('app_multi_module'))
-        {
-            $app = App::$namespace;
+        } elseif (!\think\Config::get('app_multi_module')) {
+            $app  = App::$namespace;
             $list = scandir(APP_PATH . 'model');
-            foreach ($list as $file)
-            {
-                if ('.' == $file || '..' == $file)
-                {
+            foreach ($list as $file) {
+                if ('.' == $file || '..' == $file) {
                     continue;
                 }
                 $class = '\\' . $app . '\\model\\' . pathinfo($file, PATHINFO_FILENAME);
                 $this->buildModelSchema($class);
             }
             $output->writeln('<info>Succeed!</info>');
-
             return;
-        } else
-        {
+        } else {
             $tables = Db::getTables();
         }
 
@@ -97,12 +84,11 @@ class Schema extends Command
     protected function buildModelSchema($class)
     {
         $reflect = new \ReflectionClass($class);
-        if (!$reflect->isAbstract() && $reflect->isSubclassOf('\think\Model'))
-        {
-            $table = $class::getTable();
-            $dbName = $class::getConfig('database');
+        if (!$reflect->isAbstract() && $reflect->isSubclassOf('\think\Model')) {
+            $table   = $class::getTable();
+            $dbName  = $class::getConfig('database');
             $content = '<?php ' . PHP_EOL . 'return ';
-            $info = $class::getConnection()->getFields($table);
+            $info    = $class::getConnection()->getFields($table);
             $content .= var_export($info, true) . ';';
             file_put_contents(RUNTIME_PATH . 'schema' . DS . $dbName . '.' . $table . EXT, $content);
         }
@@ -110,17 +96,14 @@ class Schema extends Command
 
     protected function buildDataBaseSchema($tables, $db)
     {
-        if ('' == $db)
-        {
+        if ('' == $db) {
             $dbName = Db::getConfig('database') . '.';
-        } else
-        {
+        } else {
             $dbName = $db;
         }
-        foreach ($tables as $table)
-        {
+        foreach ($tables as $table) {
             $content = '<?php ' . PHP_EOL . 'return ';
-            $info = Db::getFields($db . $table);
+            $info    = Db::getFields($db . $table);
             $content .= var_export($info, true) . ';';
             file_put_contents(RUNTIME_PATH . 'schema' . DS . $dbName . $table . EXT, $content);
         }

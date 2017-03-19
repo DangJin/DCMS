@@ -34,13 +34,10 @@ class Route extends Command
     protected function buildRouteCache()
     {
         $files = \think\Config::get('route_config_file');
-        foreach ($files as $file)
-        {
-            if (is_file(CONF_PATH . $file . CONF_EXT))
-            {
+        foreach ($files as $file) {
+            if (is_file(CONF_PATH . $file . CONF_EXT)) {
                 $config = include CONF_PATH . $file . CONF_EXT;
-                if (is_array($config))
-                {
+                if (is_array($config)) {
                     \think\Route::import($config);
                 }
             }
@@ -50,26 +47,23 @@ class Route extends Command
         $content = '<?php ' . PHP_EOL . 'return ';
         $content .= var_export($rules, true) . ';';
         $content = str_replace(['\'[__start__', '__end__]\''], '', stripcslashes($content));
-
         return $content;
     }
 
     protected function buildClosure(&$value)
     {
-        if ($value instanceof \Closure)
-        {
+        if ($value instanceof \Closure) {
             $reflection = new \ReflectionFunction($value);
-            $startLine = $reflection->getStartLine();
-            $endLine = $reflection->getEndLine();
-            $file = $reflection->getFileName();
-            $item = file($file);
-            $content = '';
-            for ($i = $startLine - 1; $i <= $endLine - 1; $i++)
-            {
+            $startLine  = $reflection->getStartLine();
+            $endLine    = $reflection->getEndLine();
+            $file       = $reflection->getFileName();
+            $item       = file($file);
+            $content    = '';
+            for ($i = $startLine - 1; $i <= $endLine - 1; $i++) {
                 $content .= $item[$i];
             }
             $start = strpos($content, 'function');
-            $end = strrpos($content, '}');
+            $end   = strrpos($content, '}');
             $value = '[__start__' . substr($content, $start, $end - $start + 1) . '__end__]';
         }
     }

@@ -26,19 +26,17 @@ class Lite extends Driver
     ];
 
     /**
-     * 架构函数
+     * 构造函数
      * @access public
      *
      * @param array $options
      */
     public function __construct($options = [])
     {
-        if (!empty($options))
-        {
+        if (!empty($options)) {
             $this->options = array_merge($this->options, $options);
         }
-        if (substr($this->options['path'], -1) != DS)
-        {
+        if (substr($this->options['path'], -1) != DS) {
             $this->options['path'] .= DS;
         }
 
@@ -47,9 +45,7 @@ class Lite extends Driver
     /**
      * 取得变量的存储文件名
      * @access protected
-     *
      * @param string $name 缓存变量名
-     *
      * @return string
      */
     protected function getCacheKey($name)
@@ -60,9 +56,7 @@ class Lite extends Driver
     /**
      * 判断缓存是否存在
      * @access public
-     *
      * @param string $name 缓存变量名
-     *
      * @return mixed
      */
     public function has($name)
@@ -73,30 +67,23 @@ class Lite extends Driver
     /**
      * 读取缓存
      * @access public
-     *
      * @param string $name 缓存变量名
      * @param mixed  $default 默认值
-     *
      * @return mixed
      */
     public function get($name, $default = false)
     {
         $filename = $this->getCacheKey($name);
-        if (is_file($filename))
-        {
+        if (is_file($filename)) {
             // 判断是否过期
             $mtime = filemtime($filename);
-            if ($mtime < $_SERVER['REQUEST_TIME'])
-            {
+            if ($mtime < $_SERVER['REQUEST_TIME']) {
                 // 清除已经过期的文件
                 unlink($filename);
-
                 return $default;
             }
-
             return include $filename;
-        } else
-        {
+        } else {
             return $default;
         }
     }
@@ -104,90 +91,71 @@ class Lite extends Driver
     /**
      * 写入缓存
      * @access   public
-     *
-     * @param string $name 缓存变量名
-     * @param mixed  $value 存储数据
-     * @param int    $expire 有效时间 0为永久
-     *
+     * @param string    $name  缓存变量名
+     * @param mixed     $value 存储数据
+     * @param int       $expire 有效时间 0为永久
      * @return bool
      */
     public function set($name, $value, $expire = null)
     {
-        if (is_null($expire))
-        {
+        if (is_null($expire)) {
             $expire = $this->options['expire'];
         }
         // 模拟永久
-        if (0 === $expire)
-        {
+        if (0 === $expire) {
             $expire = 10 * 365 * 24 * 3600;
         }
         $filename = $this->getCacheKey($name);
-        if ($this->tag && !is_file($filename))
-        {
+        if ($this->tag && !is_file($filename)) {
             $first = true;
         }
         $ret = file_put_contents($filename, ("<?php return " . var_export($value, true) . ";"));
         // 通过设置修改时间实现有效期
-        if ($ret)
-        {
+        if ($ret) {
             isset($first) && $this->setTagItem($filename);
             touch($filename, $_SERVER['REQUEST_TIME'] + $expire);
         }
-
         return $ret;
     }
 
     /**
      * 自增缓存（针对数值缓存）
      * @access public
-     *
-     * @param string $name 缓存变量名
-     * @param int    $step 步长
-     *
+     * @param string    $name 缓存变量名
+     * @param int       $step 步长
      * @return false|int
      */
     public function inc($name, $step = 1)
     {
-        if ($this->has($name))
-        {
+        if ($this->has($name)) {
             $value = $this->get($name) + $step;
-        } else
-        {
+        } else {
             $value = $step;
         }
-
         return $this->set($name, $value, 0) ? $value : false;
     }
 
     /**
      * 自减缓存（针对数值缓存）
      * @access public
-     *
-     * @param string $name 缓存变量名
-     * @param int    $step 步长
-     *
+     * @param string    $name 缓存变量名
+     * @param int       $step 步长
      * @return false|int
      */
     public function dec($name, $step = 1)
     {
-        if ($this->has($name))
-        {
+        if ($this->has($name)) {
             $value = $this->get($name) - $step;
-        } else
-        {
+        } else {
             $value = $step;
         }
-
         return $this->set($name, $value, 0) ? $value : false;
     }
 
     /**
      * 删除缓存
      * @access public
-     *
      * @param string $name 缓存变量名
-     *
      * @return boolean
      */
     public function rm($name)
@@ -198,23 +166,18 @@ class Lite extends Driver
     /**
      * 清除缓存
      * @access   public
-     *
      * @param string $tag 标签名
-     *
      * @return bool
      */
     public function clear($tag = null)
     {
-        if ($tag)
-        {
+        if ($tag) {
             // 指定标签清除
             $keys = $this->getTagItem($tag);
-            foreach ($keys as $key)
-            {
+            foreach ($keys as $key) {
                 unlink($key);
             }
             $this->rm('tag_' . md5($tag));
-
             return true;
         }
         array_map("unlink", glob($this->options['path'] . ($this->options['prefix'] ? $this->options['prefix'] . DS : '') . '*.php'));

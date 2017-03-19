@@ -30,8 +30,7 @@ class Controller extends Make
 
     protected function getStub()
     {
-        if ($this->input->getOption('plain'))
-        {
+        if ($this->input->getOption('plain')) {
             return __DIR__ . '/stubs/controller.plain.stub';
         }
 
